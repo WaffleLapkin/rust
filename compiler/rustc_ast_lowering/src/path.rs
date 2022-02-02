@@ -191,7 +191,9 @@ impl<'a, 'hir> LoweringContext<'a, 'hir> {
                     self.lower_angle_bracketed_parameter_data(data, param_mode, itctx)
                 }
                 GenericArgs::Parenthesized(ref data) => match parenthesized_generic_args {
-                    ParenthesizedGenericArgs::Ok => self.lower_parenthesized_parameter_data(data),
+                    ParenthesizedGenericArgs::Ok => {
+                        self.lower_parenthesized_parameter_data(data, itctx)
+                    }
                     ParenthesizedGenericArgs::Err => {
                         let mut err = struct_span_err!(self.tcx.sess, data.span, E0214, "{}", msg);
                         err.span_label(data.span, "only `Fn` traits may use parentheses");
@@ -350,6 +352,7 @@ impl<'a, 'hir> LoweringContext<'a, 'hir> {
     fn lower_parenthesized_parameter_data(
         &mut self,
         data: &ParenthesizedArgs,
+        itctx: ImplTraitContext,
     ) -> (GenericArgsCtor<'hir>, bool) {
         // Switch to `PassThrough` mode for anonymous lifetimes; this
         // means that we permit things like `&Ref<T>`, where `Ref` has
@@ -361,6 +364,14 @@ impl<'a, 'hir> LoweringContext<'a, 'hir> {
             self.lower_ty_direct(ty, ImplTraitContext::Disallowed(ImplTraitPosition::FnTraitParam))
         }));
         let output_ty = match output {
+            // Only allow `impl Trait` in return position. i.e.:
+            // ```rust
+            // fn f(_: impl Fn() -> impl Debug) -> impl Fn() -> impl Debug
+            // //      disallowed --^^^^^^^^^^        allowed --^^^^^^^^^^
+            // ```
+            FnRetTy::Ty(ty) if matches!(itctx, ImplTraitContext::ReturnPositionOpaqueTy { .. }) => {
+                self.lower_ty(&ty, itctx)
+            }
             FnRetTy::Ty(ty) => {
                 self.lower_ty(&ty, ImplTraitContext::Disallowed(ImplTraitPosition::FnTraitReturn))
             }
