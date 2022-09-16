@@ -1702,9 +1702,8 @@ fn generics_of(tcx: TyCtxt<'_>, def_id: DefId) -> ty::Generics {
                             lint::builtin::INVALID_TYPE_PARAM_DEFAULT,
                             param.hir_id,
                             param.span,
-                            |lint| {
-                                lint.build(TYPE_DEFAULT_NOT_ALLOWED).emit();
-                            },
+                            TYPE_DEFAULT_NOT_ALLOWED,
+                            |lint| lint,
                         );
                     }
                     Defaults::Deny => {
@@ -3228,11 +3227,8 @@ fn codegen_fn_attrs(tcx: TyCtxt<'_>, did: DefId) -> CodegenFnAttrs {
                     lint::builtin::INLINE_NO_SANITIZE,
                     hir_id,
                     no_sanitize_span,
-                    |lint| {
-                        lint.build("`no_sanitize` will have no effect after inlining")
-                            .span_note(inline_span, "inlining requested here")
-                            .emit();
-                    },
+                    "`no_sanitize` will have no effect after inlining",
+                    |lint| lint.span_note(inline_span, "inlining requested here"),
                 )
             }
         }

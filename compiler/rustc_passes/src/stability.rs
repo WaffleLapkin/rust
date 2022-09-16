@@ -122,16 +122,20 @@ impl<'a, 'tcx> Annotator<'a, 'tcx> {
 
             if kind == AnnotationKind::Prohibited || kind == AnnotationKind::DeprecationProhibited {
                 let hir_id = self.tcx.hir().local_def_id_to_hir_id(def_id);
-                self.tcx.struct_span_lint_hir(USELESS_DEPRECATED, hir_id, *span, |lint| {
-                    lint.build("this `#[deprecated]` annotation has no effect")
-                        .span_suggestion_short(
+                self.tcx.struct_span_lint_hir(
+                    USELESS_DEPRECATED,
+                    hir_id,
+                    *span,
+                    "this `#[deprecated]` annotation has no effect",
+                    |lint| {
+                        lint.span_suggestion_short(
                             *span,
                             "remove the unnecessary deprecation attribute",
                             "",
                             rustc_errors::Applicability::MachineApplicable,
                         )
-                        .emit();
-                });
+                    },
+                );
             }
 
             // `Deprecation` is just two pointers, no need to intern it
@@ -755,10 +759,8 @@ impl<'tcx> Visitor<'tcx> for Checker<'tcx> {
                                 INEFFECTIVE_UNSTABLE_TRAIT_IMPL,
                                 item.hir_id(),
                                 span,
-                                |lint| {lint
-                                    .build("an `#[unstable]` annotation here has no effect")
-                                    .note("see issue #55436 <https://github.com/rust-lang/rust/issues/55436> for more information")
-                                    .emit();}
+                                "an `#[unstable]` annotation here has no effect",
+                                |lint| lint.note("see issue #55436 <https://github.com/rust-lang/rust/issues/55436> for more information")
                             );
                         }
                     }
@@ -1084,11 +1086,16 @@ fn unnecessary_partially_stable_feature_lint(
     implies: Symbol,
     since: Symbol,
 ) {
-    tcx.struct_span_lint_hir(lint::builtin::STABLE_FEATURES, hir::CRATE_HIR_ID, span, |lint| {
-        lint.build(&format!(
+    tcx.struct_span_lint_hir(
+        lint::builtin::STABLE_FEATURES,
+        hir::CRATE_HIR_ID,
+        span,
+        format!(
             "the feature `{feature}` has been partially stabilized since {since} and is succeeded \
              by the feature `{implies}`"
-        ))
+        ),
+        |lint| {
+            lint
         .span_suggestion(
             span,
             &format!(
@@ -1103,8 +1110,8 @@ fn unnecessary_partially_stable_feature_lint(
             "",
             Applicability::MaybeIncorrect,
         )
-        .emit();
-    });
+        },
+    );
 }
 
 fn unnecessary_stable_feature_lint(
@@ -1116,12 +1123,8 @@ fn unnecessary_stable_feature_lint(
     if since.as_str() == VERSION_PLACEHOLDER {
         since = rust_version_symbol();
     }
-    tcx.struct_span_lint_hir(lint::builtin::STABLE_FEATURES, hir::CRATE_HIR_ID, span, |lint| {
-        lint.build(&format!(
-            "the feature `{feature}` has been stable since {since} and no longer requires an \
-             attribute to enable",
-        ))
-        .emit();
+    tcx.struct_span_lint_hir(lint::builtin::STABLE_FEATURES, hir::CRATE_HIR_ID, span, format!("the feature `{feature}` has been stable since {since} and no longer requires an attribute to enable"), |lint| {
+        lint
     });
 }
 

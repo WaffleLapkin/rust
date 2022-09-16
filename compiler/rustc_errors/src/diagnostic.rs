@@ -1,6 +1,6 @@
 use crate::snippet::Style;
 use crate::{
-    CodeSuggestion, DiagnosticMessage, EmissionGuarantee, Level, LintDiagnosticBuilder, MultiSpan,
+    CodeSuggestion, DiagnosticBuilder, DiagnosticMessage, EmissionGuarantee, Level, MultiSpan,
     SubdiagnosticMessage, Substitution, SubstitutionPart, SuggestionStyle,
 };
 use rustc_data_structures::fx::FxHashMap;
@@ -189,7 +189,12 @@ pub trait AddToDiagnostic {
 #[rustc_diagnostic_item = "DecorateLint"]
 pub trait DecorateLint<'a, G: EmissionGuarantee> {
     /// Decorate and emit a lint.
-    fn decorate_lint(self, diag: LintDiagnosticBuilder<'a, G>);
+    fn decorate_lint<'b>(
+        self,
+        diag: &'b mut DiagnosticBuilder<'a, G>,
+    ) -> &'b mut DiagnosticBuilder<'a, G>;
+
+    fn msg(&self) -> DiagnosticMessage;
 }
 
 #[must_use]

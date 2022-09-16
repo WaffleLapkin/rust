@@ -122,32 +122,15 @@ impl<'a> LintDiagnosticDerive<'a> {
         let LintDiagnosticDerive { mut structure, mut builder } = self;
 
         let ast = structure.ast();
+        let span = ast.span().unwrap();
+
         let implementation = {
             if let syn::Data::Struct(..) = ast.data {
                 let preamble = builder.preamble(&structure);
                 let (attrs, args) = builder.body(&mut structure);
-
                 let diag = &builder.diag;
-                let span = ast.span().unwrap();
-                let init = match builder.slug.value() {
-                    None => {
-                        span_err(span, "diagnostic slug not specified")
-                            .help(&format!(
-                                "specify the slug as the first argument to the attribute, such as \
-                                 `#[diag(typeck::example_error)]`",
-                            ))
-                            .emit();
-                        return DiagnosticDeriveError::ErrorHandled.to_compile_error();
-                    }
-                    Some(slug) => {
-                        quote! {
-                            let mut #diag = #diag.build(rustc_errors::fluent::#slug);
-                        }
-                    }
-                };
 
                 let implementation = quote! {
-                    #init
                     #preamble
                     match self {
                         #attrs
@@ -155,7 +138,7 @@ impl<'a> LintDiagnosticDerive<'a> {
                     match self {
                         #args
                     }
-                    #diag.emit();
+                    #diag
                 };
 
                 implementation
@@ -170,12 +153,29 @@ impl<'a> LintDiagnosticDerive<'a> {
             }
         };
 
+        let slug = match builder.slug.value() {
+            None => {
+                span_err(span, "diagnostic slug not specified")
+                    .help(&format!(
+                        "specify the slug as the first argument to the attribute, such as \
+                                 `#[diag(typeck::example_error)]`",
+                    ))
+                    .emit();
+                return DiagnosticDeriveError::ErrorHandled.to_compile_error();
+            }
+            Some(slug) => slug,
+        };
+
         let diag = &builder.diag;
         structure.gen_impl(quote! {
             gen impl<'__a> rustc_errors::DecorateLint<'__a, ()> for @Self {
-                fn decorate_lint(self, #diag: rustc_errors::LintDiagnosticBuilder<'__a, ()>) {
+                fn decorate_lint<'__b>(self, #diag: &'__b mut rustc_errors::DiagnosticBuilder<'__a, ()>) -> &'__b mut rustc_errors::DiagnosticBuilder<'__a, ()> {
                     use rustc_errors::IntoDiagnosticArg;
                     #implementation
+                }
+
+                fn msg(&self) -> rustc_errors::DiagnosticMessage {
+                    rustc_errors::fluent::#slug.into()
                 }
             }
         })
