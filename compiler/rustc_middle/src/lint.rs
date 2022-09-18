@@ -366,8 +366,6 @@ pub fn struct_lint_level<'s, 'd>(
             return;
         }
 
-        explain_lint_level_source(lint, level, src, &mut *err);
-
         let name = lint.name_lower();
         let is_force_warn = matches!(level, Level::ForceWarn(_));
         err.code(DiagnosticId::Lint { name, has_future_breakage, is_force_warn });
@@ -408,6 +406,7 @@ pub fn struct_lint_level<'s, 'd>(
 
         // Finally, run `decorate`. This function is also responsible for emitting the diagnostic.
         decorate(&mut err);
+        explain_lint_level_source(lint, level, src, &mut *err);
         err.emit()
     }
     struct_lint_level_impl(sess, lint, level, src, span, msg, Box::new(decorate))
