@@ -350,20 +350,6 @@ fn report_conflicting_impls(
     // Work to be done after we've built the DiagnosticBuilder. We have to define it
     // now because the struct_lint methods don't return back the DiagnosticBuilder
     // that's passed in.
-    fn msg(
-        overlap: &OverlapError,
-        used_to_be_allowed: Option<FutureCompatOverlapErrorKind>,
-    ) -> String {
-        format!(
-            "conflicting implementations of trait `{}`{}{}",
-            overlap.trait_desc,
-            overlap.self_desc.as_deref().map_or_else(String::new, |ty| format!(" for type `{ty}`")),
-            match used_to_be_allowed {
-                Some(FutureCompatOverlapErrorKind::Issue33140) => ": (E0119)",
-                _ => "",
-            }
-        )
-    }
     fn decorate<'a, 'b, G: EmissionGuarantee>(
         tcx: TyCtxt<'_>,
         overlap: OverlapError,
@@ -403,18 +389,22 @@ fn report_conflicting_impls(
         err
     }
 
+    let msg = format!(
+        "conflicting implementations of trait `{}`{}{}",
+        overlap.trait_desc,
+        overlap.self_desc.as_deref().map_or_else(String::new, |ty| format!(" for type `{ty}`")),
+        match used_to_be_allowed {
+            Some(FutureCompatOverlapErrorKind::Issue33140) => ": (E0119)",
+            _ => "",
+        }
+    );
+
     match used_to_be_allowed {
         None => {
             let reported = if overlap.with_impl.is_local()
                 || tcx.orphan_check_impl(impl_def_id).is_ok()
             {
-                let mut err = struct_span_err!(
-                    tcx.sess,
-                    impl_span,
-                    E0119,
-                    "{}",
-                    msg(&overlap, used_to_be_allowed)
-                );
+                let mut err = struct_span_err!(tcx.sess, impl_span, E0119, "{msg}",);
                 decorate(tcx, overlap, impl_span, &mut err);
                 Some(err.emit())
             } else {
@@ -431,7 +421,7 @@ fn report_conflicting_impls(
                 lint,
                 tcx.hir().local_def_id_to_hir_id(impl_def_id),
                 impl_span,
-                msg(&overlap, used_to_be_allowed),
+                msg,
                 |err| decorate(tcx, overlap, impl_span, err),
             );
         }

@@ -404,7 +404,7 @@ pub fn struct_lint_level<'s, 'd>(
             }
         }
 
-        // Finally, run `decorate`. This function is also responsible for emitting the diagnostic.
+        // Finally, run `decorate`.
         decorate(&mut err);
         explain_lint_level_source(lint, level, src, &mut *err);
         err.emit()
