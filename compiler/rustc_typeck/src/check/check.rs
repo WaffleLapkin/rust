@@ -1438,7 +1438,7 @@ pub(super) fn check_transparent<'tcx>(tcx: TyCtxt<'tcx>, sp: Span, adt: ty::AdtD
                 REPR_TRANSPARENT_EXTERNAL_PRIVATE_FIELDS,
                 tcx.hir().local_def_id_to_hir_id(adt.did().expect_local()),
                 span,
-                "zero-sized fields in repr(transparent) cannot contain external non-exhaustive types",
+                "zero-sized fields in `repr(transparent)` cannot contain external non-exhaustive types",
                 |lint| {
                     let note = if non_exhaustive {
                         "is marked with `#[non_exhaustive]`"

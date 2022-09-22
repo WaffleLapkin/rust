@@ -769,7 +769,7 @@ impl<'a, 'tcx> CastCheck<'tcx> {
             |lint| {
                 lint.help(format!(
                     "cast can be replaced by coercion; this might \
-                                   require {type_asc_or}a temporary variable"
+                     require {type_asc_or}a temporary variable"
                 ))
             },
         );
@@ -1144,7 +1144,7 @@ impl<'a, 'tcx> CastCheck<'tcx> {
             lint::builtin::FUZZY_PROVENANCE_CASTS,
             self.expr.hir_id,
             self.span,
-            DelayDm(||format!(
+            DelayDm(|| format!(
                 "strict provenance disallows casting integer `{}` to pointer `{}`",
                 self.expr_ty, self.cast_ty
             )),
