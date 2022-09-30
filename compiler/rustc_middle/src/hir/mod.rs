@@ -167,10 +167,11 @@ pub fn provide(providers: &mut Providers) {
             Node::TraitItem(&TraitItem {
                 kind: TraitItemKind::Fn(_, TraitFn::Required(idents)),
                 ..
-            }) => tcx.arena.alloc_slice(idents),
-            Node::ForeignItem(&ForeignItem { kind: ForeignItemKind::Fn(_, idents, _), .. }) => {
-                tcx.arena.alloc_slice(idents)
+            })
+            | Node::ForeignItem(&ForeignItem { kind: ForeignItemKind::Fn(_, idents, _), .. }) => {
+                idents
             }
+
             node => {
                 span_bug!(hir.span(hir_id), "fn_arg_names: unexpected item {:?} = {node:?}", id)
             }
