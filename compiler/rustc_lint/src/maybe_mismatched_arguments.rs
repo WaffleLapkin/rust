@@ -30,11 +30,6 @@ impl<'tcx> LateLintPass<'tcx> for MaybeMismatchedArguments {
         let Res::Def(def_kind, def_id) = cx.qpath_res(qpath, f.hir_id) else { return };
         let DefKind::Fn = def_kind else { return };
 
-        // FIXME: support intrinsics somehow (can't `expect_item` them in `fn_arg_names`)
-        if cx.tcx.is_intrinsic(def_id) {
-            return;
-        }
-
         let named_params: FxHashMap<Symbol, usize> = cx
             .tcx
             .fn_arg_names(def_id)
