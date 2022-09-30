@@ -58,6 +58,7 @@ mod internal;
 mod late;
 mod let_underscore;
 mod levels;
+mod maybe_mismatched_arguments;
 mod methods;
 mod non_ascii_idents;
 mod non_fmt_panic;
@@ -69,7 +70,6 @@ mod redundant_semicolon;
 mod traits;
 mod types;
 mod unused;
-mod maybe_mismatched_arguments;
 
 pub use array_into_iter::ARRAY_INTO_ITER;
 
@@ -90,9 +90,9 @@ use enum_intrinsics_non_enums::EnumIntrinsicsNonEnums;
 use hidden_unicode_codepoints::*;
 use internal::*;
 use let_underscore::*;
+use maybe_mismatched_arguments::*;
 use methods::*;
 use non_ascii_idents::*;
-use maybe_mismatched_arguments::*;
 use non_fmt_panic::NonPanicFmt;
 use nonstandard_style::*;
 use noop_method_call::*;
