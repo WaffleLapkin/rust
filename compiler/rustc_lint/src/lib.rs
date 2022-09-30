@@ -69,6 +69,7 @@ mod redundant_semicolon;
 mod traits;
 mod types;
 mod unused;
+mod maybe_mismatched_arguments;
 
 pub use array_into_iter::ARRAY_INTO_ITER;
 
@@ -91,6 +92,7 @@ use internal::*;
 use let_underscore::*;
 use methods::*;
 use non_ascii_idents::*;
+use maybe_mismatched_arguments::*;
 use non_fmt_panic::NonPanicFmt;
 use nonstandard_style::*;
 use noop_method_call::*;
@@ -194,6 +196,7 @@ macro_rules! late_lint_mod_passes {
                 BoxPointers: BoxPointers,
                 PathStatements: PathStatements,
                 LetUnderscore: LetUnderscore,
+                MaybeMismatchedArguments: MaybeMismatchedArguments,
                 // Depends on referenced function signatures in expressions
                 UnusedResults: UnusedResults,
                 NonUpperCaseGlobals: NonUpperCaseGlobals,
