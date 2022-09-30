@@ -160,15 +160,20 @@ pub fn provide(providers: &mut Providers) {
         let def_id = id.expect_local();
         let hir_id = hir.local_def_id_to_hir_id(def_id);
         if let Some(body_id) = hir.maybe_body_owned_by(def_id) {
-            tcx.arena.alloc_from_iter(hir.body_param_names(body_id))
-        } else if let Node::TraitItem(&TraitItem {
-            kind: TraitItemKind::Fn(_, TraitFn::Required(idents)),
-            ..
-        }) = hir.get(hir_id)
-        {
-            tcx.arena.alloc_slice(idents)
-        } else {
-            span_bug!(hir.span(hir_id), "fn_arg_names: unexpected item {:?}", id);
+            return tcx.arena.alloc_from_iter(hir.body_param_names(body_id));
+        }
+
+        match hir.get(hir_id) {
+            Node::TraitItem(&TraitItem {
+                kind: TraitItemKind::Fn(_, TraitFn::Required(idents)),
+                ..
+            }) => tcx.arena.alloc_slice(idents),
+            Node::ForeignItem(&ForeignItem { kind: ForeignItemKind::Fn(_, idents, _), .. }) => {
+                tcx.arena.alloc_slice(idents)
+            }
+            node => {
+                span_bug!(hir.span(hir_id), "fn_arg_names: unexpected item {:?} = {node:?}", id)
+            }
         }
     };
     providers.opt_def_kind = |tcx, def_id| tcx.hir().opt_def_kind(def_id.expect_local());
