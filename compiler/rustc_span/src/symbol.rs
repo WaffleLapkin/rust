@@ -1619,6 +1619,8 @@ symbols! {
         poll,
         post_cleanup: "post-cleanup",
         post_dash_lto: "post-lto",
+        postfix_addr_of,
+        postfix_deref,
         postfix_match,
         powerpc,
         powerpc64,

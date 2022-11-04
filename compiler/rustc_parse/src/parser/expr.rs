@@ -853,6 +853,29 @@ impl<'a> Parser<'a> {
                     DestructuredFloat::Error => base,
                 })
             }
+            token::Star => {
+                self.psess
+                    .gated_spans
+                    .gate(sym::postfix_deref, self.prev_token.span.to(self.token.span));
+
+                self.bump();
+
+                Ok(self.mk_expr(lo.to(self.prev_token.span), ExprKind::Unary(UnOp::Deref, base)))
+            }
+            token::And => {
+                self.psess
+                    .gated_spans
+                    .gate(sym::postfix_addr_of, self.prev_token.span.to(self.token.span));
+
+                self.bump();
+
+                let (borrow_kind, mutbl) = self.parse_borrow_modifiers();
+
+                Ok(self.mk_expr(
+                    lo.to(self.prev_token.span),
+                    ExprKind::AddrOf(borrow_kind, mutbl, base),
+                ))
+            }
             _ => {
                 self.error_unexpected_after_dot();
                 Ok(base)

@@ -454,6 +454,8 @@ pub fn check_crate(krate: &ast::Crate, sess: &Session, features: &Features) {
     gate_all!(mut_ref, "mutable by-reference bindings are experimental");
     gate_all!(mut_restriction, "`mut` restrictions are experimental");
     gate_all!(pin_ergonomics, "pinned reference syntax is experimental");
+    gate_all!(postfix_addr_of, ".& syntax is experimental");
+    gate_all!(postfix_deref, ".* syntax is experimental");
     gate_all!(postfix_match, "postfix match is experimental");
     gate_all!(return_type_notation, "return type notation is experimental");
     gate_all!(

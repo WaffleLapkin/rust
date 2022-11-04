@@ -685,6 +685,10 @@ declare_features! (
     (unstable, patchable_function_entry, "1.81.0", Some(123115)),
     /// Experimental features that make `Pin` more ergonomic.
     (incomplete, pin_ergonomics, "1.83.0", Some(130494)),
+    /// Allows `expr.&` and `expr.&mut` expressions.
+    (unstable, postfix_addr_of, "CURRENT_RUSTC_VERSION", None),
+    /// Allows `expr.*` expressions.
+    (unstable, postfix_deref, "CURRENT_RUSTC_VERSION", None),
     /// Allows postfix match `expr.match { ... }`
     (unstable, postfix_match, "1.79.0", Some(121618)),
     /// Target features on powerpc.
