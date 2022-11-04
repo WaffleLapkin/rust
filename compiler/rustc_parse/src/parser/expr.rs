@@ -1027,6 +1027,7 @@ impl<'a> Parser<'a> {
             token::Literal(token::Lit { kind: token::Float, symbol, suffix }) => {
                 Ok(self.parse_tuple_field_access_expr_float(lo, base, symbol, suffix))
             }
+            token::BinOp(_) => Ok(self.parse_dot_binop(base, lo)),
             _ => {
                 self.error_unexpected_after_dot();
                 Ok(base)
@@ -1289,6 +1290,28 @@ impl<'a> Parser<'a> {
 
             let span = lo.to(self.prev_token.span);
             Ok(self.mk_expr(span, ExprKind::Field(self_arg, segment.ident)))
+        }
+    }
+
+    /// Assuming we have just parsed `.`, continue parsing into an expression FIXME.
+    fn parse_dot_binop(&mut self, self_arg: P<Expr>, lo: Span) -> P<Expr> {
+        let start_span = self.prev_token.span;
+
+        if self.break_and_eat(token::BinOp(token::Star)) {
+            self.sess.gated_spans.gate(sym::postfix_deref, start_span.to(self.prev_token.span));
+            self.mk_expr(lo.to(self.prev_token.span), ExprKind::Unary(UnOp::Deref, self_arg))
+        } else if self.break_and_eat(token::BinOp(token::And)) {
+            let (borrow_kind, mutbl) = self.parse_borrow_modifiers(lo);
+
+            self.sess.gated_spans.gate(sym::postfix_addr_of, start_span.to(self.prev_token.span));
+
+            self.mk_expr(
+                lo.to(self.prev_token.span),
+                ExprKind::AddrOf(borrow_kind, mutbl, self_arg),
+            )
+        } else {
+            self.error_unexpected_after_dot();
+            self_arg
         }
     }
 

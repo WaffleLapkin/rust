@@ -528,6 +528,8 @@ pub fn check_crate(krate: &ast::Crate, sess: &Session) {
     gate_all!(more_qualified_paths, "usage of qualified paths in this context is experimental");
     gate_all!(generators, "yield syntax is experimental");
     gate_all!(raw_ref_op, "raw address of syntax is experimental");
+    gate_all!(postfix_deref, ".* syntax is experimental");
+    gate_all!(postfix_addr_of, ".& syntax is experimental");
     gate_all!(const_trait_impl, "const trait impls are experimental");
     gate_all!(
         half_open_range_patterns_in_slices,

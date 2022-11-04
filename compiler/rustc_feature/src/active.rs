@@ -488,6 +488,10 @@ declare_features! (
     (active, raw_dylib, "1.65.0", Some(58713), None),
     /// Allows `&raw const $place_expr` and `&raw mut $place_expr` expressions.
     (active, raw_ref_op, "1.41.0", Some(64490), None),
+    /// Allows `expr.*` expressions.
+    (active, postfix_deref, "CURRENT_RUSTC_VERSION", None, None),     
+    /// Allows `expr.&` and `expr.&mut` expressions.
+    (active, postfix_addr_of, "CURRENT_RUSTC_VERSION", None, None),
     /// Allows using the `#[register_tool]` attribute.
     (active, register_tool, "1.41.0", Some(66079), None),
     /// Allows the `#[repr(i128)]` attribute for enums.

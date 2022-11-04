@@ -1105,6 +1105,8 @@ symbols! {
         poll,
         position,
         post_dash_lto: "post-lto",
+        postfix_addr_of,
+        postfix_deref,
         powerpc_target_feature,
         powf32,
         powf64,
