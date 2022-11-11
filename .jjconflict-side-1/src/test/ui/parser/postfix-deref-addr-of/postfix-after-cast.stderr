@@ -1,0 +1,24 @@
+error: cast cannot be followed by a postfix address of operator
+  --> $DIR/postfix-after-cast.rs:5:9
+   |
+LL |     _ = 0 as u8.&;
+   |         ^^^^^^^
+   |
+help: try surrounding the expression in parentheses
+   |
+LL |     _ = (0 as u8).&;
+   |         +       +
+
+error: cast cannot be followed by a postfix deref
+  --> $DIR/postfix-after-cast.rs:6:9
+   |
+LL |     _ = &mut 0u8 as &u8.*;
+   |         ^^^^^^^^^^^^^^^
+   |
+help: try surrounding the expression in parentheses
+   |
+LL |     _ = (&mut 0u8 as &u8).*;
+   |         +               +
+
+error: aborting due to 2 previous errors
+

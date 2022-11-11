@@ -1,0 +1,11 @@
+error[E0658]: .& syntax is experimental
+  --> $DIR/feature-gate-postfix_addr_of.rs:2:11
+   |
+LL |     _ = ().&;
+   |           ^^
+   |
+   = help: add `#![feature(postfix_addr_of)]` to the crate attributes to enable
+
+error: aborting due to previous error
+
+For more information about this error, try `rustc --explain E0658`.
