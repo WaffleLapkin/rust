@@ -33,7 +33,7 @@ pub fn expand_deriving_partial_eq(
                     // type checking, but it results in much better error
                     // messages if something goes wrong.
                     let convert = |expr: &P<Expr>| {
-                        if let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, inner) =
+                        if let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, _, inner) =
                             &expr.kind
                         {
                             inner.clone()

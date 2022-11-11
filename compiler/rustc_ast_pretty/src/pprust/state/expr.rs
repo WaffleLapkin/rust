@@ -255,17 +255,35 @@ impl<'a> State<'a> {
         &mut self,
         kind: ast::BorrowKind,
         mutability: ast::Mutability,
+        fixness: ast::Fixness,
         expr: &ast::Expr,
     ) {
-        self.word("&");
-        match kind {
-            ast::BorrowKind::Ref => self.print_mutability(mutability, false),
-            ast::BorrowKind::Raw => {
-                self.word_nbsp("raw");
-                self.print_mutability(mutability, true);
+        match fixness {
+            ast::Fixness::Prefix => {
+                self.word("&");
+                match kind {
+                    ast::BorrowKind::Ref => self.print_mutability(mutability, false),
+                    ast::BorrowKind::Raw => {
+                        self.word_nbsp("raw");
+                        self.print_mutability(mutability, true);
+                    }
+                }
+                self.print_expr_maybe_paren(expr, parser::PREC_PREFIX);
+            }
+            ast::Fixness::Postfix => {
+                self.print_expr_maybe_paren(expr, parser::PREC_POSTFIX);
+                self.word(".&");
+
+                // FIXME: this adds an unwanted " " after the `mut|const`
+                match kind {
+                    ast::BorrowKind::Ref => self.print_mutability(mutability, false),
+                    ast::BorrowKind::Raw => {
+                        self.word_nbsp("raw");
+                        self.print_mutability(mutability, true);
+                    }
+                }
             }
         }
-        self.print_expr_maybe_paren(expr, parser::PREC_PREFIX)
     }
 
     pub fn print_expr(&mut self, expr: &ast::Expr) {
@@ -316,8 +334,8 @@ impl<'a> State<'a> {
             ast::ExprKind::Unary(op, ref expr) => {
                 self.print_expr_unary(op, expr);
             }
-            ast::ExprKind::AddrOf(k, m, ref expr) => {
-                self.print_expr_addr_of(k, m, expr);
+            ast::ExprKind::AddrOf(k, m, fixness, ref expr) => {
+                self.print_expr_addr_of(k, m, fixness, expr);
             }
             ast::ExprKind::Lit(ref lit) => {
                 self.print_literal(lit);

@@ -2,7 +2,7 @@ use crate::base::ExtCtxt;
 
 use rustc_ast::attr;
 use rustc_ast::ptr::P;
-use rustc_ast::{self as ast, AttrVec, BlockCheckMode, Expr, LocalKind, PatKind, UnOp};
+use rustc_ast::{self as ast, AttrVec, BlockCheckMode, Expr, Fixness, LocalKind, PatKind, UnOp};
 use rustc_data_structures::sync::Lrc;
 use rustc_span::source_map::Spanned;
 use rustc_span::symbol::{kw, sym, Ident, Symbol};
@@ -267,11 +267,14 @@ impl<'a> ExtCtxt<'a> {
     }
 
     pub fn expr_deref(&self, sp: Span, e: P<ast::Expr>) -> P<ast::Expr> {
-        self.expr(sp, ast::ExprKind::Unary(UnOp::Deref, e))
+        self.expr(sp, ast::ExprKind::Unary(UnOp::Deref(Fixness::Prefix), e))
     }
 
     pub fn expr_addr_of(&self, sp: Span, e: P<ast::Expr>) -> P<ast::Expr> {
-        self.expr(sp, ast::ExprKind::AddrOf(ast::BorrowKind::Ref, ast::Mutability::Not, e))
+        self.expr(
+            sp,
+            ast::ExprKind::AddrOf(ast::BorrowKind::Ref, ast::Mutability::Not, Fixness::Prefix, e),
+        )
     }
 
     pub fn expr_call(

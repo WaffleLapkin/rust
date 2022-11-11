@@ -40,7 +40,7 @@ use rustc_ast::visit::Visitor;
 use rustc_ast::{self as ast, AttrStyle, AttrVec, CaptureBy, ExprField, Lit, UnOp, DUMMY_NODE_ID};
 use rustc_ast::{AnonConst, BinOp, BinOpKind, FnDecl, FnRetTy, MacCall, Param, Ty, TyKind};
 use rustc_ast::{Arm, Async, BlockCheckMode, Expr, ExprKind, Label, Movability, RangeLimits};
-use rustc_ast::{ClosureBinder, StmtKind};
+use rustc_ast::{ClosureBinder, Fixness, StmtKind};
 use rustc_ast_pretty::pprust;
 use rustc_errors::{
     Applicability, Diagnostic, DiagnosticBuilder, ErrorGuaranteed, IntoDiagnostic, PResult,
@@ -579,10 +579,11 @@ impl<'a> Parser<'a> {
                 make_it!(this, attrs, |this, _| this.parse_unary_expr(lo, UnOp::Neg))
             } // `-expr`
             token::BinOp(token::Star) => {
-                make_it!(this, attrs, |this, _| this.parse_unary_expr(lo, UnOp::Deref))
+                make_it!(this, attrs, |this, _| this
+                    .parse_unary_expr(lo, UnOp::Deref(Fixness::Prefix)))
             } // `*expr`
             token::BinOp(token::And) | token::AndAnd => {
-                make_it!(this, attrs, |this, _| this.parse_borrow_expr(lo))
+                make_it!(this, attrs, |this, _| this.parse_borrow_expr(lo, Fixness::Prefix))
             }
             token::BinOp(token::Plus) if this.look_ahead(1, |tok| tok.is_numeric_lit()) => {
                 let mut err =
@@ -852,8 +853,8 @@ impl<'a> Parser<'a> {
                     ExprKind::MethodCall(..) => "a method call",
                     ExprKind::Call(..) => "a function call",
                     ExprKind::Await(..) => "`.await`",
-                    ExprKind::AddrOf(..) => "a postfix address of operator",
-                    ExprKind::Unary(UnOp::Deref, ..) => "a postfix deref",
+                    ExprKind::AddrOf(.., Fixness::Postfix, _) => "a postfix address of operator",
+                    ExprKind::Unary(UnOp::Deref(Fixness::Postfix), ..) => "a postfix deref",
                     ExprKind::Err => return Ok(with_postfix),
                     _ => unreachable!(
                         "parse_dot_or_call_expr_with_ shouldn't produce {with_postfix:?}"
@@ -913,7 +914,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse `& mut? <expr>` or `& raw [ const | mut ] <expr>`.
-    fn parse_borrow_expr(&mut self, lo: Span) -> PResult<'a, (Span, ExprKind)> {
+    fn parse_borrow_expr(&mut self, lo: Span, fixness: Fixness) -> PResult<'a, (Span, ExprKind)> {
         self.expect_and()?;
         let has_lifetime = self.token.is_lifetime() && self.look_ahead(1, |t| t != &token::Colon);
         let lifetime = has_lifetime.then(|| self.expect_lifetime()); // For recovery, see below.
@@ -924,7 +925,7 @@ impl<'a> Parser<'a> {
         if let Some(lt) = lifetime {
             self.error_remove_borrow_lifetime(span, lt.ident.span);
         }
-        Ok((span, ExprKind::AddrOf(borrow_kind, mutbl, expr)))
+        Ok((span, ExprKind::AddrOf(borrow_kind, mutbl, fixness, expr)))
     }
 
     fn error_remove_borrow_lifetime(&self, span: Span, lt_span: Span) {
@@ -1303,7 +1304,10 @@ impl<'a> Parser<'a> {
 
         if self.break_and_eat(token::BinOp(token::Star)) {
             self.sess.gated_spans.gate(sym::postfix_deref, start_span.to(self.prev_token.span));
-            self.mk_expr(lo.to(self.prev_token.span), ExprKind::Unary(UnOp::Deref, self_arg))
+            self.mk_expr(
+                lo.to(self.prev_token.span),
+                ExprKind::Unary(UnOp::Deref(Fixness::Postfix), self_arg),
+            )
         } else if self.break_and_eat(token::BinOp(token::And)) {
             let (borrow_kind, mutbl) = self.parse_borrow_modifiers(lo);
 
@@ -1311,7 +1315,7 @@ impl<'a> Parser<'a> {
 
             self.mk_expr(
                 lo.to(self.prev_token.span),
-                ExprKind::AddrOf(borrow_kind, mutbl, self_arg),
+                ExprKind::AddrOf(borrow_kind, mutbl, Fixness::Postfix, self_arg),
             )
         } else {
             self.error_unexpected_after_dot();

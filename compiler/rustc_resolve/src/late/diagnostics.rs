@@ -1108,7 +1108,7 @@ impl<'a: 'ast, 'ast> LateResolutionVisitor<'a, '_, 'ast> {
                                 }
                                 break;
                             }
-                            ExprKind::AddrOf(_, _, expr) => expr_kind = &expr.kind,
+                            ExprKind::AddrOf(_, _, _, expr) => expr_kind = &expr.kind,
                             _ => break,
                         }
                     }

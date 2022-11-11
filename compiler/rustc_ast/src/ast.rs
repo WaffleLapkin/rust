@@ -899,7 +899,7 @@ pub type BinOp = Spanned<BinOpKind>;
 #[derive(Clone, Encodable, Decodable, Debug, Copy)]
 pub enum UnOp {
     /// The `*` operator for dereferencing
-    Deref,
+    Deref(Fixness),
     /// The `!` operator for logical inversion
     Not,
     /// The `-` operator for negation
@@ -909,11 +909,20 @@ pub enum UnOp {
 impl UnOp {
     pub fn to_string(op: UnOp) -> &'static str {
         match op {
-            UnOp::Deref => "*",
+            UnOp::Deref(_) => "*",
             UnOp::Not => "!",
             UnOp::Neg => "-",
         }
     }
+}
+
+/// Style of operators that can be both prefix and postfix
+#[derive(Clone, Encodable, Decodable, Debug, Copy)]
+pub enum Fixness {
+    /// E.g. `&expr`, `*expr`
+    Prefix,
+    /// E.g. `expr.&`, `expr.*`
+    Postfix,
 }
 
 /// A statement
@@ -1163,7 +1172,7 @@ impl Expr {
 
             ExprKind::Paren(expr) => expr.to_ty().map(TyKind::Paren)?,
 
-            ExprKind::AddrOf(BorrowKind::Ref, mutbl, expr) => {
+            ExprKind::AddrOf(BorrowKind::Ref, mutbl, _, expr) => {
                 expr.to_ty().map(|ty| TyKind::Rptr(None, MutTy { ty, mutbl: *mutbl }))?
             }
 
@@ -1407,8 +1416,9 @@ pub enum ExprKind {
     /// Optionally "qualified" (e.g., `<Vec<T> as SomeTrait>::SomeType`).
     Path(Option<QSelf>, Path),
 
-    /// A referencing operation (`&a`, `&mut a`, `&raw const a` or `&raw mut a`).
-    AddrOf(BorrowKind, Mutability, P<Expr>),
+    /// A referencing operation (`&a`, `&mut a`, `&raw const a` or `&raw mut a`
+    /// and their postfix variations).
+    AddrOf(BorrowKind, Mutability, Fixness, P<Expr>),
     /// A `break`, with an optional label to break, and an optional expression.
     Break(Option<Label>, Option<P<Expr>>),
     /// A `continue`, with an optional label.
