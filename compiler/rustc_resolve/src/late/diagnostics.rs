@@ -2152,7 +2152,7 @@ impl<'ast, 'ra, 'tcx> LateResolutionVisitor<'_, 'ast, 'ra, 'tcx> {
                         }
                         break;
                     }
-                    ExprKind::AddrOf(_, _, expr) => expr_kind = &expr.kind,
+                    ExprKind::AddrOf(_, _, _, expr) => expr_kind = &expr.kind,
                     _ => break,
                 }
             }

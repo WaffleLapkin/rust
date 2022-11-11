@@ -178,7 +178,7 @@ pub enum TrailingBrace<'a> {
 pub fn expr_trailing_brace(mut expr: &ast::Expr) -> Option<TrailingBrace<'_>> {
     loop {
         match &expr.kind {
-            AddrOf(_, _, e)
+            AddrOf(_, _, _, e)
             | Assign(_, e, _)
             | AssignOp(_, _, e)
             | Binary(_, _, e)

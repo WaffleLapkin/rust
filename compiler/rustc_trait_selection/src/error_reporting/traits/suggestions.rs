@@ -3879,7 +3879,8 @@ impl<'a, 'tcx> TypeErrCtxt<'a, 'tcx> {
         let suggest_remove_deref = |err: &mut Diag<'_>, expr: &hir::Expr<'_>| {
             if let Some(pred) = predicate.as_trait_clause()
                 && tcx.is_lang_item(pred.def_id(), LangItem::Sized)
-                && let hir::ExprKind::Unary(hir::UnOp::Deref, inner) = expr.kind
+                // FIXME: postfix needs a different span presumably
+                && let hir::ExprKind::Unary(hir::UnOp::Deref(_), inner) = expr.kind
             {
                 err.span_suggestion_verbose(
                     expr.span.until(inner.span),

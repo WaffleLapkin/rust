@@ -176,10 +176,11 @@ fn flatten_format_args(mut fmt: Cow<'_, FormatArgs>) -> Cow<'_, FormatArgs> {
             let remaining_args = args.split_off(arg_index + 1);
             let old_arg_offset = args.len();
             let mut fmt2 = &mut args.pop().unwrap().expr; // The inner FormatArgs.
+            // FIXME: peel_parens_and_refs?
             let fmt2 = loop {
                 // Unwrap the Expr to get to the FormatArgs.
                 match &mut fmt2.kind {
-                    ExprKind::Paren(inner) | ExprKind::AddrOf(BorrowKind::Ref, _, inner) => {
+                    ExprKind::Paren(inner) | ExprKind::AddrOf(BorrowKind::Ref, _, _, inner) => {
                         fmt2 = inner
                     }
                     ExprKind::FormatArgs(fmt2) => break fmt2,

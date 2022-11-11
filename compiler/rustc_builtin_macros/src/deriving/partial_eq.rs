@@ -173,7 +173,7 @@ fn get_substructure_equality_expr(
 /// (e.g., `&&&T` becomes `T`). Only removes immutable references; mutable
 /// references are preserved.
 fn peel_refs(mut expr: &Box<Expr>) -> Box<Expr> {
-    while let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, inner) = &expr.kind {
+    while let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, _, inner) = &expr.kind {
         expr = inner;
     }
     expr.clone()

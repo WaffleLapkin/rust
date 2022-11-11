@@ -317,7 +317,8 @@ impl<'hir> LoweringContext<'_, 'hir> {
                     self.lower_ty_alloc(ty, ImplTraitContext::Disallowed(ImplTraitPosition::Cast));
                 hir::ExprKind::Type(expr, ty)
             }
-            ExprKind::AddrOf(k, m, ohs) => {
+            // TODO: should we discard fixness?
+            ExprKind::AddrOf(k, m, _, ohs) => {
                 let ohs = self.lower_expr(ohs);
                 hir::ExprKind::AddrOf(*k, *m, ohs)
             }
@@ -577,7 +578,7 @@ impl<'hir> LoweringContext<'_, 'hir> {
 
     fn lower_unop(&mut self, u: UnOp) -> hir::UnOp {
         match u {
-            UnOp::Deref => hir::UnOp::Deref,
+            UnOp::Deref(fixness) => hir::UnOp::Deref(fixness),
             UnOp::Not => hir::UnOp::Not,
             UnOp::Neg => hir::UnOp::Neg,
         }

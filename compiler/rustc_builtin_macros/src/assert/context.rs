@@ -1,8 +1,8 @@
 use rustc_ast::token::{self, Delimiter, IdentKind};
 use rustc_ast::tokenstream::{DelimSpan, TokenStream, TokenTree};
 use rustc_ast::{
-    BinOpKind, BorrowKind, DUMMY_NODE_ID, DelimArgs, Expr, ExprKind, ItemKind, MacCall, Mutability,
-    Path, Stmt, StructRest, UnOp, UseTree, UseTreeAndId, UseTreeKind,
+    BinOpKind, BorrowKind, DUMMY_NODE_ID, DelimArgs, Expr, ExprKind, Fixness, ItemKind, MacCall,
+    Mutability, Path, Stmt, StructRest, UnOp, UseTree, UseTreeAndId, UseTreeKind,
 };
 use rustc_ast_pretty::pprust;
 use rustc_data_structures::fx::FxHashSet;
@@ -187,7 +187,8 @@ impl<'cx, 'a> Context<'cx, 'a> {
     /// See [Self::manage_initial_capture] and [Self::manage_try_capture]
     fn manage_cond_expr(&mut self, expr: &mut Box<Expr>) {
         match &mut expr.kind {
-            ExprKind::AddrOf(_, mutability, local_expr) => {
+            // TODO: this is fishy
+            ExprKind::AddrOf(_, mutability, _, local_expr) => {
                 self.with_is_consumed_management(matches!(mutability, Mutability::Mut), |this| {
                     this.manage_cond_expr(local_expr)
                 });
@@ -440,6 +441,7 @@ fn escape_to_fmt(s: &str) -> String {
     rslt
 }
 
+// FIXME: move this to `ExtCtxt` inherent methods?
 fn expr_addr_of_mut(cx: &ExtCtxt<'_>, sp: Span, e: Box<Expr>) -> Box<Expr> {
-    cx.expr(sp, ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, e))
+    cx.expr(sp, ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, Fixness::Prefix, e))
 }

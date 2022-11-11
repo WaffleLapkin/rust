@@ -4,8 +4,8 @@ use rustc_ast::token::Delimiter;
 use rustc_ast::tokenstream::TokenStream;
 use rustc_ast::util::literal;
 use rustc_ast::{
-    self as ast, AnonConst, AttrItem, AttrVec, BlockCheckMode, Expr, LocalKind, MatchKind, PatKind,
-    UnOp, attr, token, tokenstream,
+    self as ast, AnonConst, AttrItem, AttrVec, BlockCheckMode, Expr, Fixness, LocalKind, MatchKind,
+    PatKind, UnOp, attr, token, tokenstream,
 };
 use rustc_span::{DUMMY_SP, Ident, Span, Spanned, Symbol, kw, sym};
 use thin_vec::{ThinVec, thin_vec};
@@ -334,11 +334,14 @@ impl<'a> ExtCtxt<'a> {
     }
 
     pub fn expr_deref(&self, sp: Span, e: Box<ast::Expr>) -> Box<ast::Expr> {
-        self.expr(sp, ast::ExprKind::Unary(UnOp::Deref, e))
+        self.expr(sp, ast::ExprKind::Unary(UnOp::Deref(Fixness::Prefix), e))
     }
 
     pub fn expr_addr_of(&self, sp: Span, e: Box<ast::Expr>) -> Box<ast::Expr> {
-        self.expr(sp, ast::ExprKind::AddrOf(ast::BorrowKind::Ref, ast::Mutability::Not, e))
+        self.expr(
+            sp,
+            ast::ExprKind::AddrOf(ast::BorrowKind::Ref, ast::Mutability::Not, Fixness::Prefix, e),
+        )
     }
 
     pub fn expr_paren(&self, sp: Span, e: Box<ast::Expr>) -> Box<ast::Expr> {

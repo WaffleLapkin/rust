@@ -356,26 +356,53 @@ impl<'a> State<'a> {
         &mut self,
         kind: ast::BorrowKind,
         mutability: ast::Mutability,
+        fixness: ast::Fixness,
         expr: &ast::Expr,
         fixup: FixupContext,
     ) {
-        self.word("&");
-        match kind {
-            ast::BorrowKind::Ref => self.print_mutability(mutability, false),
-            ast::BorrowKind::Raw => {
-                self.word_nbsp("raw");
-                self.print_mutability(mutability, true);
+        match fixness {
+            ast::Fixness::Prefix => {
+                self.word("&");
+                match kind {
+                    ast::BorrowKind::Ref => self.print_mutability(mutability, false),
+                    ast::BorrowKind::Raw => {
+                        self.word_nbsp("raw");
+                        self.print_mutability(mutability, true);
+                    }
+                    ast::BorrowKind::Pin => {
+                        self.word_nbsp("pin");
+                        self.print_mutability(mutability, true);
+                    }
+                }
+                self.print_expr_cond_paren(
+                    expr,
+                    fixup.precedence(expr) < ExprPrecedence::Prefix,
+                    fixup.rightmost_subexpression(),
+                );
             }
-            ast::BorrowKind::Pin => {
-                self.word_nbsp("pin");
-                self.print_mutability(mutability, true);
+            ast::Fixness::Postfix => {
+                self.print_expr_cond_paren(
+                    expr,
+                    fixup.precedence(expr) < ExprPrecedence::Unambiguous,
+                    fixup.rightmost_subexpression(),
+                );
+
+                self.word(".&");
+
+                // FIXME: this adds an unwanted " " after the `mut|const`
+                match kind {
+                    ast::BorrowKind::Ref => self.print_mutability(mutability, false),
+                    ast::BorrowKind::Raw => {
+                        self.word_nbsp("raw");
+                        self.print_mutability(mutability, true);
+                    }
+                    ast::BorrowKind::Pin => {
+                        self.word_nbsp("pin");
+                        self.print_mutability(mutability, true);
+                    }
+                }
             }
         }
-        self.print_expr_cond_paren(
-            expr,
-            fixup.precedence(expr) < ExprPrecedence::Prefix,
-            fixup.rightmost_subexpression(),
-        );
     }
 
     pub(super) fn print_expr(&mut self, expr: &ast::Expr, fixup: FixupContext) {
@@ -472,8 +499,8 @@ impl<'a> State<'a> {
             ast::ExprKind::Unary(op, expr) => {
                 self.print_expr_unary(*op, expr, fixup);
             }
-            ast::ExprKind::AddrOf(k, m, expr) => {
-                self.print_expr_addr_of(*k, *m, expr, fixup);
+            ast::ExprKind::AddrOf(k, m, fixness, expr) => {
+                self.print_expr_addr_of(*k, *m, *fixness, expr, fixup);
             }
             ast::ExprKind::Lit(token_lit) => {
                 self.print_token_literal(*token_lit, expr.span);

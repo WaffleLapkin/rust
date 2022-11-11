@@ -1167,7 +1167,7 @@ pub type AssignOp = Spanned<AssignOpKind>;
 #[derive(Clone, Copy, Debug, PartialEq, Encodable, Decodable, StableHash, Walkable)]
 pub enum UnOp {
     /// The `*` operator for dereferencing
-    Deref,
+    Deref(Fixness),
     /// The `!` operator for logical inversion
     Not,
     /// The `-` operator for negation
@@ -1177,7 +1177,7 @@ pub enum UnOp {
 impl UnOp {
     pub fn as_str(&self) -> &'static str {
         match self {
-            UnOp::Deref => "*",
+            UnOp::Deref(_) => "*",
             UnOp::Not => "!",
             UnOp::Neg => "-",
         }
@@ -1189,11 +1189,17 @@ impl UnOp {
     }
 }
 
-/// A statement.
-///
-/// No `attrs` or `tokens` fields because each `StmtKind` variant
-/// contains an AST node with those fields. (Except for `StmtKind::Empty`,
-/// which never has attrs or tokens)
+/// Style of operators that can be both prefix and postfix
+// TODO: merge with `MatchKind`?
+#[derive(Clone, Copy, Debug, PartialEq, Encodable, Decodable, StableHash, Walkable)]
+pub enum Fixness {
+    /// E.g. `&expr`, `*expr`
+    Prefix,
+    /// E.g. `expr.&`, `expr.*`
+    Postfix,
+}
+
+/// A statement
 #[derive(Clone, Encodable, Decodable, Debug)]
 pub struct Stmt {
     pub id: NodeId,
@@ -1490,7 +1496,8 @@ impl Expr {
 
     pub fn peel_parens_and_refs(&self) -> &Expr {
         let mut expr = self;
-        while let ExprKind::Paren(inner) | ExprKind::AddrOf(BorrowKind::Ref, _, inner) = &expr.kind
+        while let ExprKind::Paren(inner) | ExprKind::AddrOf(BorrowKind::Ref, _, _, inner) =
+            &expr.kind
         {
             expr = inner;
         }
@@ -1506,7 +1513,7 @@ impl Expr {
 
             ExprKind::Paren(expr) => expr.to_ty().map(TyKind::Paren)?,
 
-            ExprKind::AddrOf(BorrowKind::Ref, mutbl, expr) => {
+            ExprKind::AddrOf(BorrowKind::Ref, mutbl, _, expr) => {
                 expr.to_ty().map(|ty| TyKind::Ref(None, ty, *mutbl))?
             }
 
@@ -1852,8 +1859,9 @@ pub enum ExprKind {
     /// Optionally "qualified" (e.g., `<Vec<T> as SomeTrait>::SomeType`).
     Path(Option<Box<QSelf>>, Path),
 
-    /// A referencing operation (`&a`, `&mut a`, `&raw const a` or `&raw mut a`).
-    AddrOf(BorrowKind, Mutability, Box<Expr>),
+    /// A referencing operation (`&a`, `&mut a`, `&raw const a` or `&raw mut a`
+    /// and their postfix variations).
+    AddrOf(BorrowKind, Mutability, Fixness, Box<Expr>),
     /// A `break`, with an optional label to break, and an optional expression.
     Break(Option<Label>, Option<Box<Expr>>),
     /// A `continue`, with an optional label.

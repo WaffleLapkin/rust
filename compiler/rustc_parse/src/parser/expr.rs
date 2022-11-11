@@ -14,8 +14,8 @@ use rustc_ast::visit::{Visitor, walk_expr};
 use rustc_ast::{
     self as ast, AnonConst, Arm, AssignOp, AssignOpKind, AttrStyle, AttrVec, BinOp, BinOpKind,
     BlockCheckMode, CaptureBy, ClosureBinder, CoroutineKind, DUMMY_NODE_ID, Expr, ExprField,
-    ExprKind, FnDecl, FnRetTy, ForLoop, Guard, Label, MacCall, MetaItemLit, Movability, Param,
-    RangeLimits, StmtKind, Ty, TyKind, UnOp, UnsafeBinderCastKind, YieldKind,
+    ExprKind, Fixness, FnDecl, FnRetTy, ForLoop, Guard, Label, MacCall, MetaItemLit, Movability,
+    Param, RangeLimits, StmtKind, Ty, TyKind, UnOp, UnsafeBinderCastKind, YieldKind,
 };
 use rustc_ast_pretty::pprust;
 use rustc_errors::{Applicability, Diag, PResult, StashKey, Subdiagnostic};
@@ -410,11 +410,12 @@ impl<'a> Parser<'a> {
             }
             // `*expr`
             token::Star => {
-                make_it!(this, attrs, |this, _| this.parse_expr_unary(lo, UnOp::Deref))
+                make_it!(this, attrs, |this, _| this
+                    .parse_expr_unary(lo, UnOp::Deref(Fixness::Prefix)))
             }
             // `&expr` and `&&expr`
             token::And | token::AndAnd => {
-                make_it!(this, attrs, |this, _| this.parse_expr_borrow(lo))
+                make_it!(this, attrs, |this, _| this.parse_expr_borrow(lo, Fixness::Prefix))
             }
             // `+lit`
             token::Plus if this.look_ahead(1, |tok| tok.is_numeric_lit()) => {
@@ -656,8 +657,8 @@ impl<'a> Parser<'a> {
                 ExprKind::Use(_, _) => "`.use`",
                 ExprKind::Yield(YieldKind::Postfix(_)) => "`.yield`",
                 ExprKind::Match(_, _, MatchKind::Postfix) => "a postfix match",
-                ExprKind::AddrOf(..) => "a postfix address of operator",
-                ExprKind::Unary(UnOp::Deref, ..) => "a postfix deref",
+                ExprKind::AddrOf(.., Fixness::Postfix, _) => "a postfix address of operator",
+                ExprKind::Unary(UnOp::Deref(Fixness::Postfix), ..) => "a postfix deref",
                 ExprKind::Err(_) => return Ok(with_postfix),
                 _ => unreachable!(
                     "did not expect {:?} as an illegal postfix operator following cast",
@@ -680,7 +681,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse `& mut? <expr>` or `& raw [ const | mut ] <expr>`.
-    fn parse_expr_borrow(&mut self, lo: Span) -> PResult<'a, (Span, ExprKind)> {
+    fn parse_expr_borrow(&mut self, lo: Span, fixness: Fixness) -> PResult<'a, (Span, ExprKind)> {
         self.expect_and()?;
         let has_lifetime = self.token.is_lifetime() && self.look_ahead(1, |t| t != &token::Colon);
         let lifetime = has_lifetime.then(|| self.expect_lifetime()); // For recovery, see below.
@@ -701,7 +702,7 @@ impl<'a> Parser<'a> {
             self.expected_token_types.insert(TokenType::KwConst);
         }
 
-        Ok((span, ExprKind::AddrOf(borrow_kind, mutbl, expr)))
+        Ok((span, ExprKind::AddrOf(borrow_kind, mutbl, fixness, expr)))
     }
 
     fn error_remove_borrow_lifetime(&self, span: Span, lt_span: Span) {
@@ -862,7 +863,10 @@ impl<'a> Parser<'a> {
 
                 self.bump();
 
-                Ok(self.mk_expr(lo.to(self.prev_token.span), ExprKind::Unary(UnOp::Deref, base)))
+                Ok(self.mk_expr(
+                    lo.to(self.prev_token.span),
+                    ExprKind::Unary(UnOp::Deref(Fixness::Postfix), base),
+                ))
             }
             token::And => {
                 self.psess
@@ -875,7 +879,7 @@ impl<'a> Parser<'a> {
 
                 Ok(self.mk_expr(
                     lo.to(self.prev_token.span),
-                    ExprKind::AddrOf(borrow_kind, mutbl, base),
+                    ExprKind::AddrOf(borrow_kind, mutbl, Fixness::Postfix, base),
                 ))
             }
             _ => {
@@ -4333,7 +4337,7 @@ impl MutVisitor for CondChecker<'_> {
             | ExprKind::AssignOp(_, _, _)
             | ExprKind::Range(_, _, _)
             | ExprKind::Try(_)
-            | ExprKind::AddrOf(_, _, _)
+            | ExprKind::AddrOf(_, _, _, _)
             | ExprKind::Binary(_, _, _)
             | ExprKind::Field(_, _)
             | ExprKind::Index(_, _, _)

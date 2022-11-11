@@ -432,6 +432,7 @@ macro_rules! common_visitor_and_walkers {
         impl_visitable_noop! {
             // tidy-alphabetical-start
             AttrId,
+            Fixness,
             Movability,
             Mutability,
             Pinnedness,
@@ -1026,8 +1027,8 @@ macro_rules! common_visitor_and_walkers {
                     visit_visitable!(vis, mc),
                 ExprKind::Binary(op, lhs, rhs) =>
                     visit_visitable!(vis, op, lhs, rhs),
-                ExprKind::AddrOf(kind, mutbl, subexpression) =>
-                    visit_visitable!(vis, kind, mutbl, subexpression),
+                ExprKind::AddrOf(kind, mutbl, fixness, subexpression) =>
+                    visit_visitable!(vis, kind, mutbl, fixness, subexpression),
                 ExprKind::Unary(op, subexpression) =>
                     visit_visitable!(vis, op, subexpression),
                 ExprKind::Cast(subexpression, typ) | ExprKind::Type(subexpression, typ) =>

@@ -2309,7 +2309,7 @@ impl Expr<'_> {
             // Unsafe binder cast preserves place-ness of the sub-expression.
             ExprKind::UnsafeBinderCast(_, e, _) => e.is_place_expr(allow_projections_from),
 
-            ExprKind::Unary(UnOp::Deref, _) => true,
+            ExprKind::Unary(UnOp::Deref(_), _) => true,
 
             ExprKind::Field(ref base, _) | ExprKind::Index(ref base, _, _) => {
                 allow_projections_from(base) || base.is_place_expr(allow_projections_from)
