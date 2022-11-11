@@ -656,6 +656,8 @@ impl<'a> Parser<'a> {
                 ExprKind::Use(_, _) => "`.use`",
                 ExprKind::Yield(YieldKind::Postfix(_)) => "`.yield`",
                 ExprKind::Match(_, _, MatchKind::Postfix) => "a postfix match",
+                ExprKind::AddrOf(..) => "a postfix address of operator",
+                ExprKind::Unary(UnOp::Deref, ..) => "a postfix deref",
                 ExprKind::Err(_) => return Ok(with_postfix),
                 _ => unreachable!(
                     "did not expect {:?} as an illegal postfix operator following cast",

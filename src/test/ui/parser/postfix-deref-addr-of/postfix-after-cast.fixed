@@ -1,0 +1,7 @@
+// run-rustfix
+#![feature(postfix_addr_of, postfix_deref)]
+
+fn main() {
+    _ = (0 as u8).&; //~ error: cast cannot be followed by a postfix address of operator
+    _ = (&mut 0u8 as &u8).*; //~ error: cast cannot be followed by a postfix deref
+}
