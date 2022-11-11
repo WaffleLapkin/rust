@@ -1,0 +1,11 @@
+error[E0658]: .* syntax is experimental
+  --> $DIR/feature-gate-postfix_deref.rs:2:13
+   |
+LL |     _ = (&0).*;
+   |             ^^
+   |
+   = help: add `#![feature(postfix_deref)]` to the crate attributes to enable
+
+error: aborting due to previous error
+
+For more information about this error, try `rustc --explain E0658`.
