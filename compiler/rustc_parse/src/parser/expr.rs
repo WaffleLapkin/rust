@@ -846,14 +846,18 @@ impl<'a> Parser<'a> {
             let msg = format!(
                 "{cast_kind} cannot be followed by {}",
                 match with_postfix.kind {
-                    ExprKind::Index(_, _) => "indexing",
-                    ExprKind::Try(_) => "`?`",
-                    ExprKind::Field(_, _) => "a field access",
-                    ExprKind::MethodCall(_, _, _, _) => "a method call",
-                    ExprKind::Call(_, _) => "a function call",
-                    ExprKind::Await(_) => "`.await`",
+                    ExprKind::Index(..) => "indexing",
+                    ExprKind::Try(..) => "`?`",
+                    ExprKind::Field(..) => "a field access",
+                    ExprKind::MethodCall(..) => "a method call",
+                    ExprKind::Call(..) => "a function call",
+                    ExprKind::Await(..) => "`.await`",
+                    ExprKind::AddrOf(..) => "a postfix address of operator",
+                    ExprKind::Unary(UnOp::Deref, ..) => "a postfix deref",
                     ExprKind::Err => return Ok(with_postfix),
-                    _ => unreachable!("parse_dot_or_call_expr_with_ shouldn't produce this"),
+                    _ => unreachable!(
+                        "parse_dot_or_call_expr_with_ shouldn't produce {with_postfix:?}"
+                    ),
                 }
             );
             let mut err = self.struct_span_err(span, &msg);
