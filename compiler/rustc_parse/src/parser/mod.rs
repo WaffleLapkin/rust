@@ -38,7 +38,8 @@ use rustc_session::parse::ParseSess;
 use rustc_span::source_map::{Span, DUMMY_SP};
 use rustc_span::symbol::{kw, sym, Ident, Symbol};
 
-use std::ops::Range;
+use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut, Range};
 use std::{cmp, mem, slice};
 
 use crate::errors::{
@@ -123,6 +124,38 @@ pub enum Recovery {
     Forbidden,
 }
 
+pub struct ParserRef<'a, R> {
+    parser: &'a mut Parser<'a>,
+    recovery_token: PhantomData<R>,
+}
+
+impl<'a, R> Deref for ParserRef<'a, R> {
+    type Target = Parser<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        self.parser
+    }
+}
+
+impl<'a, R> DerefMut for ParserRef<'a, R> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.parser
+    }
+}
+
+impl<'a> ParserRef<'a, Recovery> {
+    pub fn allow_recovery(self) -> Result<ParserRef<'a, RecoveryAllowed>, Self> {
+        if self.may_recover() {
+            Ok(ParserRef { parser: self.parser, recovery_token: PhantomData })
+        } else {
+            Err(self)
+        }
+    }
+}
+
+/// Token that promises that parser recovery is allowed
+pub struct RecoveryAllowed(());
+
 #[derive(Clone)]
 pub struct Parser<'a> {
     pub sess: &'a ParseSess,
@@ -161,8 +194,10 @@ pub struct Parser<'a> {
     /// multiple statements in the closure body.
     pub current_closure: Option<ClosureSpans>,
     /// Whether the parser is allowed to do recovery.
-    /// This is disabled when parsing macro arguments, see #103534
-    pub recovery: Recovery,
+    /// This is disabled when parsing macro arguments, see #103534.
+    ///
+    /// N.B.: only change recovery when there is an **owned** access to self.
+    recovery: Recovery,
 }
 
 // This type is used a lot, e.g. it's cloned when matching many declarative macro rules with nonterminals. Make sure
@@ -517,6 +552,10 @@ impl<'a> Parser<'a> {
     /// But making the distinction is very subtle, and simply forbidding all recovery is a lot simpler to uphold.
     fn may_recover(&self) -> bool {
         matches!(self.recovery, Recovery::Allowed)
+    }
+
+    fn as_ref(&mut self) -> ParserRef<'_, Recovery> {
+        ParserRef { parser: self, recovery_token: PhantomData }
     }
 
     pub fn unexpected<T>(&mut self) -> PResult<'a, T> {

@@ -1268,8 +1268,14 @@ impl<'a> Parser<'a> {
 
         let fn_span_lo = self.token.span;
         let mut segment = self.parse_path_segment(PathStyle::Expr, None)?;
-        self.check_trailing_angle_brackets(&segment, &[&token::OpenDelim(Delimiter::Parenthesis)]);
-        self.check_turbofish_missing_angle_brackets(&mut segment);
+
+        if let Ok(this) = self.as_ref().allow_recovery() {
+            this.check_trailing_angle_brackets(
+                &segment,
+                &[&token::OpenDelim(Delimiter::Parenthesis)],
+            );
+            this.check_turbofish_missing_angle_brackets(&mut segment);
+        }
 
         if self.check(&token::OpenDelim(Delimiter::Parenthesis)) {
             // Method call `expr.f()`

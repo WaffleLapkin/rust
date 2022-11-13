@@ -41,7 +41,7 @@ use std::ops::{Deref, DerefMut};
 
 use std::mem::take;
 
-use crate::parser;
+use crate::parser::{self, ParserRef, RecoveryAllowed};
 
 /// Creates a placeholder argument.
 pub(super) fn dummy_arg(ident: Ident) -> Param {
@@ -753,7 +753,9 @@ impl<'a> Parser<'a> {
             err.cancel();
         }
     }
+}
 
+impl ParserRef<'_, RecoveryAllowed> {
     /// This function checks if there are trailing angle brackets and produces
     /// a diagnostic to suggest removing them.
     ///
@@ -769,10 +771,6 @@ impl<'a> Parser<'a> {
         segment: &PathSegment,
         end: &[&TokenKind],
     ) -> bool {
-        if !self.may_recover() {
-            return false;
-        }
-
         // This function is intended to be invoked after parsing a path segment where there are two
         // cases:
         //
@@ -867,10 +865,6 @@ impl<'a> Parser<'a> {
     /// Check if a method call with an intended turbofish has been written without surrounding
     /// angle brackets.
     pub(super) fn check_turbofish_missing_angle_brackets(&mut self, segment: &mut PathSegment) {
-        if !self.may_recover() {
-            return;
-        }
-
         if token::ModSep == self.token.kind && segment.args.is_none() {
             let snapshot = self.create_snapshot_for_diagnostic();
             self.bump();
@@ -912,7 +906,9 @@ impl<'a> Parser<'a> {
             }
         }
     }
+}
 
+impl Parser<'_> {
     /// When writing a turbofish with multiple type parameters missing the leading `::`, we will
     /// encounter a parse error when encountering the first `,`.
     pub(super) fn check_mistyped_turbofish_with_multiple_type_params(

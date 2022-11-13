@@ -197,7 +197,9 @@ impl<'a> Parser<'a> {
     ) -> PResult<'a, ()> {
         loop {
             let segment = self.parse_path_segment(style, ty_generics)?;
-            if style == PathStyle::Expr {
+            if style == PathStyle::Expr 
+            && let Ok(this) = self.as_ref().allow_recovery()
+            {
                 // In order to check for trailing angle brackets, we must have finished
                 // recursing (`parse_path_segment` can indirectly call this function),
                 // that is, the next token must be the highlighted part of the below example:
@@ -214,7 +216,7 @@ impl<'a> Parser<'a> {
                 // `PathStyle::Expr` is only provided at the root invocation and never in
                 // `parse_path_segment` to recurse and therefore can be checked to maintain
                 // this invariant.
-                self.check_trailing_angle_brackets(&segment, &[&token::ModSep]);
+                this.check_trailing_angle_brackets(&segment, &[&token::ModSep]);
             }
             segments.push(segment);
 

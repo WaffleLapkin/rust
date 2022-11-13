@@ -1654,21 +1654,23 @@ impl<'a> Parser<'a> {
                 );
 
                 // Try to recover extra trailing angle brackets
-                let mut recovered = false;
-                if let TyKind::Path(_, Path { segments, .. }) = &a_var.ty.kind {
-                    if let Some(last_segment) = segments.last() {
-                        recovered = self.check_trailing_angle_brackets(
-                            last_segment,
-                            &[&token::Comma, &token::CloseDelim(Delimiter::Brace)],
-                        );
-                        if recovered {
-                            // Handle a case like `Vec<u8>>,` where we can continue parsing fields
-                            // after the comma
-                            self.eat(&token::Comma);
-                            // `check_trailing_angle_brackets` already emitted a nicer error
-                            // NOTE(eddyb) this was `.cancel()`, but `err`
-                            // gets returned, so we can't fully defuse it.
-                            err.delay_as_bug();
+                if let Ok(this) = self.as_ref().allow_recovery() {
+                    let mut recovered = false;
+                    if let TyKind::Path(_, Path { segments, .. }) = &a_var.ty.kind {
+                        if let Some(last_segment) = segments.last() {
+                            recovered = this.check_trailing_angle_brackets(
+                                last_segment,
+                                &[&token::Comma, &token::CloseDelim(Delimiter::Brace)],
+                            );
+                            if recovered {
+                                // Handle a case like `Vec<u8>>,` where we can continue parsing fields
+                                // after the comma
+                                this.eat(&token::Comma);
+                                // `check_trailing_angle_brackets` already emitted a nicer error
+                                // NOTE(eddyb) this was `.cancel()`, but `err`
+                                // gets returned, so we can't fully defuse it.
+                                err.delay_as_bug();
+                            }
                         }
                     }
                 }
