@@ -28,8 +28,8 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
             desc,
         );
 
-        err.span_label(borrow_span, format!("borrow of {} occurs here", borrow_desc));
-        err.span_label(span, format!("use of borrowed {}", borrow_desc));
+        err.span_label(borrow_span, format!("borrow of {borrow_desc} occurs here"));
+        err.span_label(span, format!("use of borrowed {borrow_desc}"));
         err
     }
 
@@ -42,8 +42,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
         old_opt_via: &str,
         old_load_end_span: Option<Span>,
     ) -> DiagnosticBuilder<'cx, ErrorGuaranteed> {
-        let via =
-            |msg: &str| if msg.is_empty() { "".to_string() } else { format!(" (via {})", msg) };
+        let via = |msg: &str| if msg.is_empty() { "".to_string() } else { format!(" (via {msg})") };
         let mut err = struct_span_err!(
             self,
             new_loan_span,
@@ -134,9 +133,9 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
         );
         err.span_label(
             new_loan_span,
-            format!("{} construction occurs here{}", container_name, opt_via),
+            format!("{container_name} construction occurs here{opt_via}"),
         );
-        err.span_label(old_loan_span, format!("borrow occurs here{}", old_opt_via));
+        err.span_label(old_loan_span, format!("borrow occurs here{old_opt_via}"));
         if let Some(previous_end_span) = previous_end_span {
             err.span_label(previous_end_span, "borrow ends here");
         }
@@ -164,13 +163,10 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
             opt_via,
             kind_new,
         );
-        err.span_label(
-            new_loan_span,
-            format!("{}borrow occurs here{}", second_borrow_desc, opt_via),
-        );
+        err.span_label(new_loan_span, format!("{second_borrow_desc}borrow occurs here{opt_via}"));
         err.span_label(
             old_loan_span,
-            format!("{} construction occurs here{}", container_name, old_opt_via),
+            format!("{container_name} construction occurs here{old_opt_via}"),
         );
         if let Some(previous_end_span) = previous_end_span {
             err.span_label(previous_end_span, "borrow from closure ends here");
@@ -190,8 +186,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
         msg_old: &str,
         old_load_end_span: Option<Span>,
     ) -> DiagnosticBuilder<'cx, ErrorGuaranteed> {
-        let via =
-            |msg: &str| if msg.is_empty() { "".to_string() } else { format!(" (via {})", msg) };
+        let via = |msg: &str| if msg.is_empty() { "".to_string() } else { format!(" (via {msg})") };
         let mut err = struct_span_err!(
             self,
             span,
@@ -207,8 +202,8 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
 
         if msg_new == "" {
             // If `msg_new` is empty, then this isn't a borrow of a union field.
-            err.span_label(span, format!("{} borrow occurs here", kind_new));
-            err.span_label(old_span, format!("{} borrow occurs here", kind_old));
+            err.span_label(span, format!("{kind_new} borrow occurs here"));
+            err.span_label(old_span, format!("{kind_old} borrow occurs here"));
         } else {
             // If `msg_new` isn't empty, then this a borrow of a union field.
             err.span_label(
@@ -218,11 +213,11 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
                     kind_new, msg_new, msg_old,
                 ),
             );
-            err.span_label(old_span, format!("{} borrow occurs here{}", kind_old, via(msg_old)));
+            err.span_label(old_span, format!("{kind_old} borrow occurs here{}", via(msg_old)));
         }
 
         if let Some(old_load_end_span) = old_load_end_span {
-            err.span_label(old_load_end_span, format!("{} borrow ends here", kind_old));
+            err.span_label(old_load_end_span, format!("{kind_old} borrow ends here"));
         }
         err
     }
@@ -241,8 +236,8 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
             desc,
         );
 
-        err.span_label(borrow_span, format!("borrow of {} occurs here", desc));
-        err.span_label(span, format!("assignment to borrowed {} occurs here", desc));
+        err.span_label(borrow_span, format!("borrow of {desc} occurs here"));
+        err.span_label(span, format!("assignment to borrowed {desc} occurs here"));
         err
     }
 
@@ -321,7 +316,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
         optional_adverb_for_moved: &str,
         moved_path: Option<String>,
     ) -> DiagnosticBuilder<'tcx, ErrorGuaranteed> {
-        let moved_path = moved_path.map(|mp| format!(": `{}`", mp)).unwrap_or_default();
+        let moved_path = moved_path.map(|mp| format!(": `{mp}`")).unwrap_or_default();
 
         struct_span_err!(
             self,
@@ -360,8 +355,8 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
             immutable_place,
             immutable_section,
         );
-        err.span_label(mutate_span, format!("cannot {}", action));
-        err.span_label(immutable_span, format!("value is immutable in {}", immutable_section));
+        err.span_label(mutate_span, format!("cannot {action}"));
+        err.span_label(immutable_span, format!("value is immutable in {immutable_section}"));
         err
     }
 
@@ -419,7 +414,7 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
 
         err.span_label(
             span,
-            format!("{}s a {} data owned by the current function", return_kind, reference_desc),
+            format!("{return_kind}s a {reference_desc} data owned by the current function"),
         );
 
         err
@@ -441,8 +436,8 @@ impl<'cx, 'tcx> crate::MirBorrowckCtxt<'cx, 'tcx> {
             closure_kind,
             borrowed_path,
         );
-        err.span_label(capture_span, format!("{} is borrowed here", borrowed_path))
-            .span_label(closure_span, format!("may outlive borrowed value {}", borrowed_path));
+        err.span_label(capture_span, format!("{borrowed_path} is borrowed here"))
+            .span_label(closure_span, format!("may outlive borrowed value {borrowed_path}"));
         err
     }
 

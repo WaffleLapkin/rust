@@ -157,7 +157,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                 err.span_note(
                     MultiSpan::from_spans(reinit_spans),
                     &if reinits <= 3 {
-                        format!("these {} reinitializations might get skipped", reinits)
+                        format!("these {reinits} reinitializations might get skipped")
                     } else {
                         format!(
                             "these 3 reinitializations and {} other{} might get skipped",
@@ -214,7 +214,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                             &format!(
                                 "borrow this field in the pattern to avoid moving {}",
                                 self.describe_place(moved_place.as_ref())
-                                    .map(|n| format!("`{}`", n))
+                                    .map(|n| format!("`{n}`"))
                                     .unwrap_or_else(|| "the value".to_string())
                             ),
                             "ref ",
@@ -266,7 +266,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                         &format!(
                             "consider creating a fresh reborrow of {} here",
                             self.describe_place(moved_place)
-                                .map(|n| format!("`{}`", n))
+                                .map(|n| format!("`{n}`"))
                                 .unwrap_or_else(|| "the mutable reference".to_string()),
                         ),
                         "&mut *",
@@ -280,7 +280,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                 DescribePlaceOpt { including_downcast: true, including_tuple_field: true },
             );
             let note_msg = match opt_name {
-                Some(ref name) => format!("`{}`", name),
+                Some(ref name) => format!("`{name}`"),
                 None => "value".to_owned(),
             };
             if self.suggest_borrow_fn_like(&mut err, ty, &move_site_vec, &note_msg) {
@@ -512,7 +512,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
             err.span_suggestion_verbose(
                 sugg_span.shrink_to_hi(),
                 format!("consider assigning a value"),
-                format!(" = {}", assign_value),
+                format!(" = {assign_value}"),
                 Applicability::MaybeIncorrect,
             );
         }
@@ -673,8 +673,8 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
 
         let mut err =
             self.cannot_move_when_borrowed(span, &self.describe_any_place(place.as_ref()));
-        err.span_label(borrow_span, format!("borrow of {} occurs here", borrow_msg));
-        err.span_label(span, format!("move out of {} occurs here", value_msg));
+        err.span_label(borrow_span, format!("borrow of {borrow_msg} occurs here"));
+        err.span_label(span, format!("move out of {value_msg} occurs here"));
 
         borrow_spans.var_span_label_path_only(
             &mut err,
@@ -728,7 +728,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
             {
                 let place = &borrow.borrowed_place;
                 let desc_place = self.describe_any_place(place.as_ref());
-                format!("borrow occurs due to use of {}{}", desc_place, borrow_spans.describe())
+                format!("borrow occurs due to use of {desc_place}{}", borrow_spans.describe())
             },
             "mutable",
         );
@@ -921,7 +921,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
         if issued_spans == borrow_spans {
             borrow_spans.var_span_label(
                 &mut err,
-                format!("borrows occur due to use of {}{}", desc_place, borrow_spans.describe(),),
+                format!("borrows occur due to use of {desc_place}{}", borrow_spans.describe(),),
                 gen_borrow_kind.describe_mutability(),
             );
         } else {
@@ -1282,7 +1282,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                     region_name,
                     category,
                     span,
-                    &format!("`{}`", name),
+                    &format!("`{name}`"),
                 ),
             (
                 ref name,
@@ -1355,14 +1355,14 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
             }
         }
 
-        let mut err = self.path_does_not_live_long_enough(borrow_span, &format!("`{}`", name));
+        let mut err = self.path_does_not_live_long_enough(borrow_span, &format!("`{name}`"));
 
         if let Some(annotation) = self.annotate_argument_and_return_for_borrow(borrow) {
             let region_name = annotation.emit(self, &mut err);
 
             err.span_label(
                 borrow_span,
-                format!("`{}` would have to be valid for `{}`...", name, region_name),
+                format!("`{name}` would have to be valid for `{region_name}`..."),
             );
 
             let fn_hir_id = self.mir_hir_id();
@@ -1375,7 +1375,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                         .tcx
                         .hir()
                         .opt_name(fn_hir_id)
-                        .map(|name| format!("function `{}`", name))
+                        .map(|name| format!("function `{name}`"))
                         .unwrap_or_else(|| {
                             match &self
                                 .infcx
@@ -1416,11 +1416,11 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
             }
         } else {
             err.span_label(borrow_span, "borrowed value does not live long enough");
-            err.span_label(drop_span, format!("`{}` dropped here while still borrowed", name));
+            err.span_label(drop_span, format!("`{name}` dropped here while still borrowed"));
 
             let within = if borrow_spans.for_generator() { " by generator" } else { "" };
 
-            borrow_spans.args_span_label(&mut err, format!("value captured here{}", within));
+            borrow_spans.args_span_label(&mut err, format!("value captured here{within}"));
 
             explanation.add_explanation_to_diagnostic(
                 self.infcx.tcx,
@@ -1457,7 +1457,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
         let mut err = self.cannot_borrow_across_destructor(borrow_span);
 
         let what_was_dropped = match self.describe_place(place.as_ref()) {
-            Some(name) => format!("`{}`", name),
+            Some(name) => format!("`{name}`"),
             None => String::from("temporary value"),
         };
 
@@ -1604,7 +1604,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                             && let Some(p) = sm.span_to_margin(stmt.span)
                             && let Ok(s) = sm.span_to_snippet(proper_span)
                         {
-                            let addition = format!("let binding = {};\n{}", s, " ".repeat(p));
+                            let addition = format!("let binding = {s};\n{}", " ".repeat(p));
                             err.multipart_suggestion_verbose(
                                 msg,
                                 vec![
@@ -1636,7 +1636,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
 
         let within = if borrow_spans.for_generator() { " by generator" } else { "" };
 
-        borrow_spans.args_span_label(&mut err, format!("value captured here{}", within));
+        borrow_spans.args_span_label(&mut err, format!("value captured here{within}"));
 
         err
     }
@@ -1679,10 +1679,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
             } else {
                 "local data "
             };
-            (
-                format!("{}`{}`", local_kind, place_desc),
-                format!("`{}` is borrowed here", place_desc),
-            )
+            (format!("{local_kind}`{place_desc}`"), format!("`{place_desc}` is borrowed here"))
         } else {
             let root_place =
                 self.prefixes(borrow.borrowed_place.as_ref(), PrefixSet::All).last().unwrap();
@@ -1789,7 +1786,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
 
         match category {
             ConstraintCategory::Return(_) | ConstraintCategory::OpaqueType => {
-                let msg = format!("{} is returned here", kind);
+                let msg = format!("{kind} is returned here");
                 err.span_note(constraint_span, &msg);
             }
             ConstraintCategory::CallArgument(_) => {
@@ -1800,7 +1797,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                     reference or ownership of outside variables they use",
                     );
                 } else {
-                    let msg = format!("function requires argument type to outlive `{}`", fr_name);
+                    let msg = format!("function requires argument type to outlive `{fr_name}`");
                     err.span_note(constraint_span, &msg);
                 }
             }
@@ -1831,21 +1828,18 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
 
         err.span_label(
             upvar_span,
-            format!("`{}` declared here, outside of the {} body", upvar_name, escapes_from),
+            format!("`{upvar_name}` declared here, outside of the {escapes_from} body"),
         );
 
-        err.span_label(borrow_span, format!("borrow is only valid in the {} body", escapes_from));
+        err.span_label(borrow_span, format!("borrow is only valid in the {escapes_from} body"));
 
         if let Some(name) = name {
             err.span_label(
                 escape_span,
-                format!("reference to `{}` escapes the {} body here", name, escapes_from),
+                format!("reference to `{name}` escapes the {escapes_from} body here"),
             );
         } else {
-            err.span_label(
-                escape_span,
-                format!("reference escapes the {} body here", escapes_from),
-            );
+            err.span_label(escape_span, format!("reference escapes the {escapes_from} body here"));
         }
 
         err
@@ -2178,7 +2172,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
             "cannot assign twice to immutable variable"
         };
         if span != assigned_span && !from_arg {
-            err.span_label(assigned_span, format!("first assignment to {}", place_description));
+            err.span_label(assigned_span, format!("first assignment to {place_description}"));
         }
         if let Some(decl) = local_decl
             && let Some(name) = local_name
@@ -2187,7 +2181,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
             err.span_suggestion(
                 decl.source_info.span,
                 "consider making this binding mutable",
-                format!("mut {}", name),
+                format!("mut {name}"),
                 Applicability::MachineApplicable,
             );
         }
@@ -2640,7 +2634,7 @@ impl<'tcx> AnnotatedBorrowFnSignature<'tcx> {
                 return_span,
             } => {
                 let argument_ty_name = cx.get_name_for_ty(argument_ty, 0);
-                diag.span_label(argument_span, format!("has type `{}`", argument_ty_name));
+                diag.span_label(argument_span, format!("has type `{argument_ty_name}`"));
 
                 let return_ty_name = cx.get_name_for_ty(return_ty, 0);
                 let types_equal = return_ty_name == argument_ty_name;
@@ -2667,10 +2661,10 @@ impl<'tcx> AnnotatedBorrowFnSignature<'tcx> {
                 // Region of return type and arguments checked to be the same earlier.
                 let region_name = cx.get_region_name_for_ty(*return_ty, 0);
                 for (_, argument_span) in arguments {
-                    diag.span_label(*argument_span, format!("has lifetime `{}`", region_name));
+                    diag.span_label(*argument_span, format!("has lifetime `{region_name}`"));
                 }
 
-                diag.span_label(*return_span, format!("also has lifetime `{}`", region_name,));
+                diag.span_label(*return_span, format!("also has lifetime `{region_name}`",));
 
                 diag.help(&format!(
                     "use data from the highlighted arguments which match the `{}` lifetime of \

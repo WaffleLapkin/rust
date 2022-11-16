@@ -80,7 +80,7 @@ impl<'tcx> BorrowExplanation<'tcx> {
                     if borrow_span.map(|sp| !sp.overlaps(var_or_use_span)).unwrap_or(true) {
                         err.span_label(
                             var_or_use_span,
-                            format!("{}borrow later {}", borrow_desc, message),
+                            format!("{borrow_desc}borrow later {message}"),
                         );
                     }
                 } else {
@@ -93,7 +93,7 @@ impl<'tcx> BorrowExplanation<'tcx> {
                         let capture_kind_label = message;
                         err.span_label(
                             var_or_use_span,
-                            format!("{}borrow later {}", borrow_desc, capture_kind_label),
+                            format!("{borrow_desc}borrow later {capture_kind_label}"),
                         );
                         err.span_label(path_span, path_label);
                     }
@@ -113,7 +113,7 @@ impl<'tcx> BorrowExplanation<'tcx> {
                 };
                 // We can use `var_or_use_span` if either `path_span` is not present, or both spans are the same
                 if path_span.map(|path_span| path_span == var_or_use_span).unwrap_or(true) {
-                    err.span_label(var_or_use_span, format!("{}{}", borrow_desc, message));
+                    err.span_label(var_or_use_span, format!("{borrow_desc}{message}"));
                 } else {
                     // path_span must be `Some` as otherwise the if condition is true
                     let path_span = path_span.unwrap();
@@ -124,7 +124,7 @@ impl<'tcx> BorrowExplanation<'tcx> {
                         let capture_kind_label = message;
                         err.span_label(
                             var_or_use_span,
-                            format!("{}borrow later {}", borrow_desc, capture_kind_label),
+                            format!("{borrow_desc}borrow later {capture_kind_label}"),
                         );
                         err.span_label(path_span, path_label);
                     }
@@ -307,7 +307,7 @@ impl<'tcx> BorrowExplanation<'tcx> {
             err.span_suggestion_verbose(
                 span.shrink_to_hi(),
                 &msg,
-                format!(" + {}", suggestable_name),
+                format!(" + {suggestable_name}"),
                 Applicability::Unspecified,
             );
         }

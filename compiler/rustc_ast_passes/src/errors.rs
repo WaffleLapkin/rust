@@ -236,7 +236,7 @@ impl AddToDiagnostic for ExternBlockSuggestion {
         F: Fn(&mut Diagnostic, SubdiagnosticMessage) -> SubdiagnosticMessage,
     {
         let start_suggestion = if let Some(abi) = self.abi {
-            format!("extern \"{}\" {{", abi)
+            format!("extern \"{abi}\" {{")
         } else {
             "extern {".to_owned()
         };

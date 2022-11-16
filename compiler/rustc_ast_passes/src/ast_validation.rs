@@ -411,7 +411,7 @@ impl<'a> AstValidator<'a> {
             [b0, .., bl] => b0.span().to(bl.span()),
         };
         self.err_handler()
-            .struct_span_err(span, &format!("bounds on `type`s in {} have no effect", ctx))
+            .struct_span_err(span, &format!("bounds on `type`s in {ctx} have no effect"))
             .emit();
     }
 
@@ -420,11 +420,11 @@ impl<'a> AstValidator<'a> {
             self.err_handler()
                 .struct_span_err(
                     span,
-                    &format!("`type`s inside `extern` blocks cannot have {}", descr),
+                    &format!("`type`s inside `extern` blocks cannot have {descr}"),
                 )
                 .span_suggestion(
                     span,
-                    &format!("remove the {}", remove_descr),
+                    &format!("remove the {remove_descr}"),
                     "",
                     Applicability::MaybeIncorrect,
                 )
@@ -447,7 +447,7 @@ impl<'a> AstValidator<'a> {
             return;
         };
         self.err_handler()
-            .struct_span_err(ident.span, &format!("incorrect `{}` inside `extern` block", kind))
+            .struct_span_err(ident.span, &format!("incorrect `{kind}` inside `extern` block"))
             .span_label(ident.span, "cannot have a body")
             .span_label(body, "the invalid body")
             .span_label(
@@ -561,8 +561,8 @@ impl<'a> AstValidator<'a> {
             return;
         }
         self.err_handler()
-            .struct_span_err(ident.span, &format!("`{}` items in this context need a name", kind))
-            .span_label(ident.span, format!("`_` is not a valid name for this `{}` item", kind))
+            .struct_span_err(ident.span, &format!("`{kind}` items in this context need a name"))
+            .span_label(ident.span, format!("`_` is not a valid name for this `{kind}` item"))
             .emit();
     }
 
@@ -840,7 +840,7 @@ fn validate_generic_param_order(
             GenericParamKind::Type { default: _ } => (ParamKindOrd::TypeOrConst, ident.to_string()),
             GenericParamKind::Const { ref ty, kw_span: _, default: _ } => {
                 let ty = pprust::ty_to_string(ty);
-                (ParamKindOrd::TypeOrConst, format!("const {}: {}", ident, ty))
+                (ParamKindOrd::TypeOrConst, format!("const {ident}: {ty}"))
             }
         };
         param_idents.push((kind, ord_kind, bounds, idx, ident));
@@ -1061,9 +1061,9 @@ impl<'a> Visitor<'a> for AstValidator<'a> {
                 let error = |annotation_span, annotation| {
                     let mut err = self.err_handler().struct_span_err(
                         self_ty.span,
-                        &format!("inherent impls cannot be {}", annotation),
+                        &format!("inherent impls cannot be {annotation}"),
                     );
-                    err.span_label(annotation_span, &format!("{} because of this", annotation));
+                    err.span_label(annotation_span, &format!("{annotation} because of this"));
                     err.span_label(self_ty.span, "inherent impl for this type");
                     err
                 };
@@ -1401,7 +1401,7 @@ impl<'a> Visitor<'a> for AstValidator<'a> {
                         .err_handler()
                         .struct_span_err(poly.span, "`?Trait` is not permitted in supertraits");
                     let path_str = pprust::path_to_string(&poly.trait_ref.path);
-                    err.note(&format!("traits are `?{}` by default", path_str));
+                    err.note(&format!("traits are `?{path_str}` by default"));
                     err.emit();
                 }
                 (BoundKind::TraitObject, TraitBoundModifier::Maybe) => {
@@ -1728,15 +1728,12 @@ fn deny_equality_constraints(
                                             let Some(arg) = args.args.last() else {
                                                 continue;
                                             };
-                                            (
-                                                format!(", {} = {}", assoc, ty),
-                                                arg.span().shrink_to_hi(),
-                                            )
+                                            (format!(", {assoc} = {ty}"), arg.span().shrink_to_hi())
                                         }
                                         _ => continue,
                                     },
                                     None => (
-                                        format!("<{} = {}>", assoc, ty),
+                                        format!("<{assoc} = {ty}>"),
                                         trait_segment.span().shrink_to_hi(),
                                     ),
                                 };

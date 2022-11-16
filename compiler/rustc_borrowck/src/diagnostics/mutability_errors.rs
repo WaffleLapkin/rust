@@ -1175,7 +1175,7 @@ fn suggest_ampmut<'tcx>(
     {
         let lt_name = &src[1..ws_pos];
         let ty = &src[ws_pos..];
-        return (true, highlight_span, format!("&{} mut{}", lt_name, ty));
+        return (true, highlight_span, format!("&{lt_name} mut{ty}"));
     }
 
     let ty_mut = local_decl.ty.builtin_deref(true).unwrap();

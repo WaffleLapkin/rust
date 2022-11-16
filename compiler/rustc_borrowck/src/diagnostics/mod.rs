@@ -682,11 +682,11 @@ impl<'tcx> BorrowedContentSource<'tcx> {
             BorrowedContentSource::OverloadedDeref(ty) => ty
                 .ty_adt_def()
                 .and_then(|adt| match tcx.get_diagnostic_name(adt.did())? {
-                    name @ (sym::Rc | sym::Arc) => Some(format!("an `{}`", name)),
+                    name @ (sym::Rc | sym::Arc) => Some(format!("an `{name}`")),
                     _ => None,
                 })
-                .unwrap_or_else(|| format!("dereference of `{}`", ty)),
-            BorrowedContentSource::OverloadedIndex(ty) => format!("index of `{}`", ty),
+                .unwrap_or_else(|| format!("dereference of `{ty}`")),
+            BorrowedContentSource::OverloadedIndex(ty) => format!("index of `{ty}`"),
         }
     }
 
@@ -712,11 +712,11 @@ impl<'tcx> BorrowedContentSource<'tcx> {
             BorrowedContentSource::OverloadedDeref(ty) => ty
                 .ty_adt_def()
                 .and_then(|adt| match tcx.get_diagnostic_name(adt.did())? {
-                    name @ (sym::Rc | sym::Arc) => Some(format!("an `{}`", name)),
+                    name @ (sym::Rc | sym::Arc) => Some(format!("an `{name}`")),
                     _ => None,
                 })
-                .unwrap_or_else(|| format!("dereference of `{}`", ty)),
-            BorrowedContentSource::OverloadedIndex(ty) => format!("an index of `{}`", ty),
+                .unwrap_or_else(|| format!("dereference of `{ty}`")),
+            BorrowedContentSource::OverloadedIndex(ty) => format!("an index of `{ty}`"),
         }
     }
 
@@ -981,7 +981,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
         if let UseSpans::FnSelfUse { var_span, fn_call_span, fn_span, kind } = move_spans {
             let place_name = self
                 .describe_place(moved_place.as_ref())
-                .map(|n| format!("`{}`", n))
+                .map(|n| format!("`{n}`"))
                 .unwrap_or_else(|| "value".to_owned());
             match kind {
                 CallKind::FnCall { fn_trait_id, .. }
@@ -1073,7 +1073,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                                     &format!(
                                         "consider creating a fresh reborrow of {} here",
                                         self.describe_place(moved_place.as_ref())
-                                            .map(|n| format!("`{}`", n))
+                                            .map(|n| format!("`{n}`"))
                                             .unwrap_or_else(|| "the mutable reference".to_string()),
                                     ),
                                     "&mut *",
@@ -1095,7 +1095,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
                     if span != DUMMY_SP && self.fn_self_span_reported.insert(self_arg.span) {
                         err.span_note(
                             self_arg.span,
-                            &format!("this function takes ownership of the receiver `self`, which moves {}", place_name)
+                            &format!("this function takes ownership of the receiver `self`, which moves {place_name}")
                         );
                     }
                     if is_option_or_result && maybe_reinitialized_locations_is_empty {
@@ -1112,7 +1112,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
             if move_span != span || !loop_message.is_empty() {
                 err.span_label(
                     move_span,
-                    format!("value {}moved{} here{}", partially_str, move_msg, loop_message),
+                    format!("value {partially_str}moved{move_msg} here{loop_message}"),
                 );
             }
             // If the move error occurs due to a loop, don't show
@@ -1120,7 +1120,7 @@ impl<'cx, 'tcx> MirBorrowckCtxt<'cx, 'tcx> {
             if loop_message.is_empty() {
                 move_spans.var_span_label(
                     err,
-                    format!("variable {}moved due to use{}", partially_str, move_spans.describe()),
+                    format!("variable {partially_str}moved due to use{}", move_spans.describe()),
                     "moved",
                 );
             }

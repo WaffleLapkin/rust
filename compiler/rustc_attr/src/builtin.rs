@@ -621,7 +621,7 @@ fn try_gate_cfg(name: Symbol, span: Span, sess: &ParseSess, features: Option<&Fe
 fn gate_cfg(gated_cfg: &GatedCfg, cfg_span: Span, sess: &ParseSess, features: &Features) {
     let (cfg, feature, has_feature) = gated_cfg;
     if !has_feature(features) && !cfg_span.allows_unstable(*feature) {
-        let explain = format!("`cfg({})` is experimental and subject to change", cfg);
+        let explain = format!("`cfg({cfg})` is experimental and subject to change");
         feature_err(sess, *feature, cfg_span, &explain).emit();
     }
 }

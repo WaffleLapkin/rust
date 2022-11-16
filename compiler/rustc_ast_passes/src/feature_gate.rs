@@ -79,7 +79,7 @@ impl<'a> PostExpansionVisitor<'a> {
                     &self,
                     const_extern_fn,
                     span,
-                    &format!("`{}` as a `const fn` ABI is unstable", abi)
+                    &format!("`{abi}` as a `const fn` ABI is unstable")
                 ),
             }
         }
