@@ -90,7 +90,7 @@ impl<'a> TokenTreesReader<'a> {
     }
 
     fn eof_err(&mut self) -> PErr<'a> {
-        let msg = "this file contains an unclosed delimiter";
+        let msg = || "this file contains an unclosed delimiter";
         let mut err = self.string_reader.sess.span_diagnostic.struct_span_err(self.token.span, msg);
         for &(_, sp) in &self.open_braces {
             err.span_label(sp, "unclosed delimiter");
@@ -234,7 +234,7 @@ impl<'a> TokenTreesReader<'a> {
         let token_str = token_to_string(&self.token);
         let msg = format!("unexpected closing delimiter: `{}`", token_str);
         let mut err =
-            self.string_reader.sess.span_diagnostic.struct_span_err(self.token.span, &msg);
+            self.string_reader.sess.span_diagnostic.struct_span_err(self.token.span, || msg);
 
         // Braces are added at the end, so the last element is the biggest block
         if let Some(parent) = self.matching_block_spans.last() {

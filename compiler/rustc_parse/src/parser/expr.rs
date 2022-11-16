@@ -837,20 +837,19 @@ impl<'a> Parser<'a> {
         // Check if an illegal postfix operator has been added after the cast.
         // If the resulting expression is not a cast, or has a different memory location, it is an illegal postfix operator.
         if !matches!(with_postfix.kind, ExprKind::Cast(_, _) | ExprKind::Type(_, _)) || changed {
-            let msg = format!(
-                "{cast_kind} cannot be followed by {}",
-                match with_postfix.kind {
-                    ExprKind::Index(_, _) => "indexing",
-                    ExprKind::Try(_) => "`?`",
-                    ExprKind::Field(_, _) => "a field access",
-                    ExprKind::MethodCall(_, _, _, _) => "a method call",
-                    ExprKind::Call(_, _) => "a function call",
-                    ExprKind::Await(_) => "`.await`",
-                    ExprKind::Err => return Ok(with_postfix),
-                    _ => unreachable!("parse_dot_or_call_expr_with_ shouldn't produce this"),
-                }
-            );
-            let mut err = self.struct_span_err(span, &msg);
+            let by = match with_postfix.kind {
+                ExprKind::Index(_, _) => "indexing",
+                ExprKind::Try(_) => "`?`",
+                ExprKind::Field(_, _) => "a field access",
+                ExprKind::MethodCall(_, _, _, _) => "a method call",
+                ExprKind::Call(_, _) => "a function call",
+                ExprKind::Await(_) => "`.await`",
+                ExprKind::Err => return Ok(with_postfix),
+                _ => unreachable!("parse_dot_or_call_expr_with_ shouldn't produce this"),
+            };
+
+            let msg = || format!("{cast_kind} cannot be followed by {by}");
+            let mut err = self.struct_span_err(span, msg);
 
             let suggest_parens = |err: &mut Diagnostic| {
                 let suggestions = vec![
@@ -1031,7 +1030,7 @@ impl<'a> Parser<'a> {
     fn error_unexpected_after_dot(&self) {
         // FIXME Could factor this out into non_fatal_unexpected or something.
         let actual = pprust::token_to_string(&self.token);
-        self.struct_span_err(self.token.span, &format!("unexpected token: `{actual}`")).emit();
+        self.struct_span_err(self.token.span, || format!("unexpected token: `{actual}`")).emit();
     }
 
     // We need an identifier or integer, but the next token is a float.
@@ -1744,8 +1743,8 @@ impl<'a> Parser<'a> {
                     }
                 }
             }
-            let msg = format!("unexpected token: {}", super::token_descr(&self.token));
-            self.struct_span_err(self.token.span, &msg)
+            let msg = || format!("unexpected token: {}", super::token_descr(&self.token));
+            self.struct_span_err(self.token.span, msg)
         })
     }
 

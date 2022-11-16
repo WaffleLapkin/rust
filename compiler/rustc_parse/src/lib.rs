@@ -153,7 +153,7 @@ fn try_file_to_source_file(
 ) -> Result<Lrc<SourceFile>, Diagnostic> {
     sess.source_map().load_file(path).map_err(|e| {
         let msg = format!("couldn't read {}: {}", path.display(), e);
-        let mut diag = Diagnostic::new(Level::Fatal, &msg);
+        let mut diag = Diagnostic::new(Level::Fatal, || msg);
         if let Some(sp) = spanopt {
             diag.set_span(sp);
         }
@@ -190,10 +190,12 @@ pub fn maybe_file_to_stream(
     override_span: Option<Span>,
 ) -> Result<(TokenStream, Vec<lexer::UnmatchedBrace>), Vec<Diagnostic>> {
     let src = source_file.src.as_ref().unwrap_or_else(|| {
-        sess.span_diagnostic.bug(&format!(
-            "cannot lex `source_file` without source: {}",
-            sess.source_map().filename_for_diagnostics(&source_file.name)
-        ));
+        sess.span_diagnostic.bug(|| {
+            format!(
+                "cannot lex `source_file` without source: {}",
+                sess.source_map().filename_for_diagnostics(&source_file.name)
+            )
+        });
     });
 
     let (token_trees, unmatched_braces) =

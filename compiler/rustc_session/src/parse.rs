@@ -140,7 +140,7 @@ pub fn feature_warn_issue<'a>(
     issue: GateIssue,
     explain: &str,
 ) {
-    let mut err = sess.span_diagnostic.struct_span_warn(span, explain);
+    let mut err = sess.span_diagnostic.struct_span_warn(span, || explain);
     add_feature_diagnostics_for_issue(&mut err, sess, feature, issue);
 
     // Decorate this as a future-incompatibility lint as in rustc_middle::lint::struct_lint_level
@@ -296,7 +296,7 @@ impl ParseSess {
             buffered_lints.push(BufferedEarlyLint {
                 span: span.into(),
                 node_id,
-                msg: msg.into(),
+                msg: (|| msg).into(),
                 lint_id: LintId::of(lint),
                 diagnostic: BuiltinLintDiagnostics::Normal,
             });
@@ -315,7 +315,7 @@ impl ParseSess {
             buffered_lints.push(BufferedEarlyLint {
                 span: span.into(),
                 node_id,
-                msg: msg.into(),
+                msg: (|| msg).into(),
                 lint_id: LintId::of(lint),
                 diagnostic,
             });

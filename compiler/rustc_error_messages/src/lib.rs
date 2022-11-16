@@ -367,22 +367,23 @@ impl DiagnosticMessage {
     }
 }
 
-/// `From` impl that enables existing diagnostic calls to functions which now take
-/// `impl Into<DiagnosticMessage>` to continue to work as before.
-impl<S: Into<String>> From<S> for DiagnosticMessage {
-    fn from(s: S) -> Self {
-        DiagnosticMessage::Str(s.into())
+// /// `From` impl that enables existing diagnostic calls to functions which now take
+// /// `impl Into<DiagnosticMessage>` to continue to work as before.
+// impl<S: Into<String>> From<S> for DiagnosticMessage {
+//     fn from(s: S) -> Self {
+//         DiagnosticMessage::Str(s.into())
+//     }
+// }
+
+impl<F: FnOnce() -> S, S: Into<String>> From<F> for DiagnosticMessage {
+    fn from(f: F) -> Self {
+        DiagnosticMessage::Str(f().into())
     }
 }
 
-/// A workaround for "good path" ICEs when formatting types in disables lints.
-///
-/// Delays formatting until `.into(): DiagnosticMessage` is used.
-pub struct DelayDm<F>(pub F);
-
-impl<F: FnOnce() -> String> From<DelayDm<F>> for DiagnosticMessage {
-    fn from(DelayDm(f): DelayDm<F>) -> Self {
-        DiagnosticMessage::from(f())
+impl From<&'static str> for DiagnosticMessage {
+    fn from(s: &'static str) -> Self {
+        DiagnosticMessage::Str(s.into())
     }
 }
 

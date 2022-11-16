@@ -32,14 +32,14 @@ pub(crate) fn emit_unescape_error(
     match error {
         EscapeError::LoneSurrogateUnicodeEscape => {
             handler
-                .struct_span_err(span, "invalid unicode character escape")
+                .struct_span_err(span, || "invalid unicode character escape")
                 .span_label(span, "invalid escape")
                 .help("unicode escape must not be a surrogate")
                 .emit();
         }
         EscapeError::OutOfRangeUnicodeEscape => {
             handler
-                .struct_span_err(span, "invalid unicode character escape")
+                .struct_span_err(span, || "invalid unicode character escape")
                 .span_label(span, "invalid escape")
                 .help("unicode escape must be at most 10FFFF")
                 .emit();
@@ -50,7 +50,7 @@ pub(crate) fn emit_unescape_error(
             let mut has_help = false;
             let mut handler = handler.struct_span_err(
                 span_with_quotes,
-                "character literal may only contain one codepoint",
+                || "character literal may only contain one codepoint",
             );
 
             if lit.chars().skip(1).all(|c| is_combining_mark(c)) {
@@ -133,7 +133,7 @@ pub(crate) fn emit_unescape_error(
                 "character constant must be escaped"
             };
             handler
-                .struct_span_err(span, &format!("{}: `{}`", msg, escaped_char(c)))
+                .struct_span_err(span, || format!("{}: `{}`", msg, escaped_char(c)))
                 .span_suggestion(
                     char_span,
                     "escape the character",
@@ -169,7 +169,7 @@ pub(crate) fn emit_unescape_error(
             let label =
                 if mode.is_bytes() { "unknown byte escape" } else { "unknown character escape" };
             let ec = escaped_char(c);
-            let mut diag = handler.struct_span_err(span, &format!("{}: `{}`", label, ec));
+            let mut diag = handler.struct_span_err(span, || format!("{}: `{}`", label, ec));
             diag.span_label(span, label);
             if c == '{' || c == '}' && !mode.is_bytes() {
                 diag.help(
@@ -211,7 +211,7 @@ pub(crate) fn emit_unescape_error(
             let c = escaped_char(c);
 
             handler
-                .struct_span_err(span, &format!("{}: `{}`", msg, c))
+                .struct_span_err(span, || format!("{}: `{}`", msg, c))
                 .span_label(span, msg)
                 .emit();
         }
@@ -278,7 +278,7 @@ pub(crate) fn emit_unescape_error(
             let (c, span) = last_char();
             let msg = "invalid start of unicode escape";
             handler
-                .struct_span_err(span, &format!("{}: `{}`", msg, c))
+                .struct_span_err(span, || format!("{}: `{}`", msg, c))
                 .span_label(span, msg)
                 .emit();
         }
@@ -355,7 +355,7 @@ pub(crate) fn emit_unescape_error(
             let (c, char_span) = last_char();
             let msg =
                 format!("non-ASCII whitespace symbol '{}' is not skipped", c.escape_unicode());
-            handler.struct_span_warn(span, &msg).span_label(char_span, &msg).emit();
+            handler.struct_span_warn(span, || msg).span_label(char_span, &msg).emit();
         }
         EscapeError::MultipleSkippedLinesWarning => {
             let msg = "multiple lines skipped by escaped newline";

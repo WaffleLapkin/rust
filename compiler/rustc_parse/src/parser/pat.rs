@@ -197,9 +197,9 @@ impl<'a> Parser<'a> {
             if trailing_vert {
                 // We already emitted an error and suggestion to remove the trailing vert. Don't
                 // emit again.
-                self.sess.span_diagnostic.delay_span_bug(pat.span, &msg);
+                self.sess.span_diagnostic.delay_span_bug(pat.span, || msg);
             } else {
-                self.struct_span_err(pat.span, &msg)
+                self.struct_span_err(pat.span, || msg)
                     .span_suggestion(pat.span, help, fix, Applicability::MachineApplicable)
                     .emit();
             }
@@ -296,7 +296,7 @@ impl<'a> Parser<'a> {
     /// A `|` or possibly `||` token shouldn't be here. Ban it.
     fn ban_illegal_vert(&mut self, lo: Option<Span>, pos: &str, ctx: &str) {
         let span = self.token.span;
-        let mut err = self.struct_span_err(span, &format!("a {} `|` is {}", pos, ctx));
+        let mut err = self.struct_span_err(span, || format!("a {pos} `|` is {ctx}"));
         err.span_suggestion(
             span,
             &format!("remove the `{}`", pprust::token_to_string(&self.token)),

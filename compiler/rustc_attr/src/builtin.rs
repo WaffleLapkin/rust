@@ -1090,7 +1090,7 @@ pub fn parse_repr_attr(sess: &Session, attr: &Attribute) -> Vec<ReprAttr> {
                 // (e.g. if we only pretty-print the source), so we have to gate
                 // the `delay_span_bug` call as follows:
                 if sess.opts.pretty.map_or(true, |pp| pp.needs_analysis()) {
-                    diagnostic.delay_span_bug(item.span(), "unrecognized representation hint");
+                    diagnostic.delay_span_bug(item.span(), || "unrecognized representation hint");
                 }
             }
         }

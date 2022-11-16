@@ -161,7 +161,7 @@ impl<'a> Parser<'a> {
             }
             NonterminalKind::Ident => {
                 let token_str = pprust::token_to_string(&self.token);
-                let msg = &format!("expected ident, found {}", &token_str);
+                let msg = || format!("expected ident, found {}", &token_str);
                 return Err(self.struct_span_err(self.token.span, msg));
             }
             NonterminalKind::Path => token::NtPath(
@@ -176,7 +176,7 @@ impl<'a> Parser<'a> {
                     token::NtLifetime(self.expect_lifetime().ident)
                 } else {
                     let token_str = pprust::token_to_string(&self.token);
-                    let msg = &format!("expected a lifetime, found `{}`", &token_str);
+                    let msg = || format!("expected a lifetime, found `{}`", &token_str);
                     return Err(self.struct_span_err(self.token.span, msg));
                 }
             }

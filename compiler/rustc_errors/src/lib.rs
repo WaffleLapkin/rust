@@ -30,7 +30,7 @@ use rustc_data_structures::stable_hasher::StableHasher;
 use rustc_data_structures::sync::{self, Lock, Lrc};
 use rustc_data_structures::AtomicRef;
 pub use rustc_error_messages::{
-    fallback_fluent_bundle, fluent, fluent_bundle, DelayDm, DiagnosticMessage, FluentBundle,
+    fallback_fluent_bundle, fluent, fluent_bundle, DiagnosticMessage, FluentBundle,
     LanguageIdentifier, LazyFallbackBundle, MultiSpan, SpanLabel, SubdiagnosticMessage,
     DEFAULT_LOCALE_RESOURCES,
 };
@@ -495,7 +495,10 @@ impl Drop for HandlerInner {
 
         if !self.has_errors() {
             let bugs = std::mem::replace(&mut self.delayed_span_bugs, Vec::new());
-            self.flush_delayed(bugs, "no errors encountered even though `delay_span_bug` issued");
+            self.flush_delayed(
+                bugs,
+                || "no errors encountered even though `delay_span_bug` issued",
+            );
         }
 
         // FIXME(eddyb) this explains what `delayed_good_path_bugs` are!
@@ -507,7 +510,7 @@ impl Drop for HandlerInner {
             let bugs = std::mem::replace(&mut self.delayed_good_path_bugs, Vec::new());
             self.flush_delayed(
                 bugs.into_iter().map(DelayedDiagnostic::decorate),
-                "no warnings or errors encountered even though `delayed_good_path_bugs` issued",
+                || "no warnings or errors encountered even though `delayed_good_path_bugs` issued",
             );
         }
 
@@ -1150,7 +1153,7 @@ impl Handler {
     pub fn flush_delayed(&self) {
         let mut inner = self.inner.lock();
         let bugs = std::mem::replace(&mut inner.delayed_span_bugs, Vec::new());
-        inner.flush_delayed(bugs, "no errors encountered even though `delay_span_bug` issued");
+        inner.flush_delayed(bugs, || "no errors encountered even though `delay_span_bug` issued");
     }
 }
 
@@ -1336,10 +1339,10 @@ impl HandlerInner {
                 DiagnosticMessage::Str(warnings),
             )),
             (_, 0) => {
-                let _ = self.fatal(&errors);
+                let _ = self.fatal(|| errors);
             }
             (_, _) => {
-                let _ = self.fatal(&format!("{}; {}", &errors, &warnings));
+                let _ = self.fatal(|| format!("{}; {}", &errors, &warnings));
             }
         }
 
@@ -1362,22 +1365,28 @@ impl HandlerInner {
                 error_codes.sort();
                 if error_codes.len() > 1 {
                     let limit = if error_codes.len() > 9 { 9 } else { error_codes.len() };
-                    self.failure(&format!(
-                        "Some errors have detailed explanations: {}{}",
-                        error_codes[..limit].join(", "),
-                        if error_codes.len() > 9 { "..." } else { "." }
-                    ));
-                    self.failure(&format!(
-                        "For more information about an error, try \
+                    self.failure(|| {
+                        format!(
+                            "Some errors have detailed explanations: {}{}",
+                            error_codes[..limit].join(", "),
+                            if error_codes.len() > 9 { "..." } else { "." }
+                        )
+                    });
+                    self.failure(|| {
+                        format!(
+                            "For more information about an error, try \
                          `rustc --explain {}`.",
-                        &error_codes[0]
-                    ));
+                            &error_codes[0]
+                        )
+                    });
                 } else {
-                    self.failure(&format!(
-                        "For more information about this error, try \
+                    self.failure(|| {
+                        format!(
+                            "For more information about this error, try \
                          `rustc --explain {}`.",
-                        &error_codes[0]
-                    ));
+                            &error_codes[0]
+                        )
+                    });
                 }
             }
         }

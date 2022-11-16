@@ -493,7 +493,7 @@ impl<'a> Parser<'a> {
         };
         self.last_unexpected_token_span = Some(self.token.span);
         // FIXME: translation requires list formatting (for `expect`)
-        let mut err = self.struct_span_err(self.token.span, &msg_exp);
+        let mut err = self.struct_span_err(self.token.span, || msg_exp);
 
         if let TokenKind::Ident(symbol, _) = &self.prev_token.kind {
             if ["def", "fun", "func", "function"].contains(&symbol.as_str()) {
@@ -1285,10 +1285,9 @@ impl<'a> Parser<'a> {
         kind: IncDecRecovery,
         op_span: Span,
     ) -> PResult<'a, P<Expr>> {
-        let mut err = self.struct_span_err(
-            op_span,
-            &format!("Rust has no {} {} operator", kind.fixity, kind.op.name()),
-        );
+        let mut err = self.struct_span_err(op_span, || {
+            format!("Rust has no {} {} operator", kind.fixity, kind.op.name())
+        });
         err.span_label(op_span, &format!("not a valid {} operator", kind.fixity));
 
         let help_base_case = |mut err: DiagnosticBuilder<'_, _>, base| {
@@ -1479,7 +1478,7 @@ impl<'a> Parser<'a> {
                 _ => this_token_str,
             },
         );
-        let mut err = self.struct_span_err(sp, &msg);
+        let mut err = self.struct_span_err(sp, || msg);
         let label_exp = format!("expected `{token_str}`");
         match self.recover_closing_delimiter(&[t.clone()], err) {
             Err(e) => err = e,
@@ -2047,7 +2046,7 @@ impl<'a> Parser<'a> {
                 format!("expected expression, found {}", super::token_descr(&self.token),),
             ),
         };
-        let mut err = self.struct_span_err(span, &msg);
+        let mut err = self.struct_span_err(span, || msg);
         let sp = self.sess.source_map().start_point(self.token.span);
         if let Some(sp) = self.sess.ambiguous_block_expr_parse.borrow().get(&sp) {
             err.subdiagnostic(ExprParenthesesNeeded::surrounding(*sp));
@@ -2116,10 +2115,9 @@ impl<'a> Parser<'a> {
         // We are causing this error here exclusively in case that a `const` expression
         // could be recovered from the current parser state, even if followed by more
         // arguments after a comma.
-        let mut err = self.struct_span_err(
-            self.token.span,
-            &format!("expected one of `,` or `>`, found {}", super::token_descr(&self.token)),
-        );
+        let mut err = self.struct_span_err(self.token.span, || {
+            format!("expected one of `,` or `>`, found {}", super::token_descr(&self.token))
+        });
         err.span_label(self.token.span, "expected one of `,` or `>`");
         match self.recover_const_arg(arg.span(), err) {
             Ok(arg) => {

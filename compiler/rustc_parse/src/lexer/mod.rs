@@ -175,7 +175,7 @@ impl<'a> StringReader<'a> {
                                 .span_diagnostic
                                 .struct_span_warn(
                                     self.mk_sp(suffix_start, self.pos),
-                                    "underscore literal suffix is not allowed",
+                                    || "underscore literal suffix is not allowed",
                                 )
                                 .warn(
                                     "this was previously accepted by the compiler but is \
@@ -267,12 +267,12 @@ impl<'a> StringReader<'a> {
 
     /// Report a fatal lexical error with a given span.
     fn fatal_span(&self, sp: Span, m: &str) -> ! {
-        self.sess.span_diagnostic.span_fatal(sp, m)
+        self.sess.span_diagnostic.span_fatal(sp, || m)
     }
 
     /// Report a lexical error with a given span.
     fn err_span(&self, sp: Span, m: &str) {
-        self.sess.span_diagnostic.struct_span_err(sp, m).emit();
+        self.sess.span_diagnostic.struct_span_err(sp, || m).emit();
     }
 
     /// Report a fatal error spanning [`from_pos`, `to_pos`).
@@ -292,9 +292,9 @@ impl<'a> StringReader<'a> {
         m: &str,
         c: char,
     ) -> DiagnosticBuilder<'a, !> {
-        self.sess
-            .span_diagnostic
-            .struct_span_fatal(self.mk_sp(from_pos, to_pos), &format!("{}: {}", m, escaped_char(c)))
+        self.sess.span_diagnostic.struct_span_fatal(self.mk_sp(from_pos, to_pos), || {
+            format!("{}: {}", m, escaped_char(c))
+        })
     }
 
     fn struct_err_span_char(
@@ -306,7 +306,7 @@ impl<'a> StringReader<'a> {
     ) -> DiagnosticBuilder<'a, ErrorGuaranteed> {
         self.sess
             .span_diagnostic
-            .struct_span_err(self.mk_sp(from_pos, to_pos), &format!("{}: {}", m, escaped_char(c)))
+            .struct_span_err(self.mk_sp(from_pos, to_pos), || format!("{}: {}", m, escaped_char(c)))
     }
 
     /// Detect usages of Unicode codepoints changing the direction of the text on screen and loudly
@@ -367,7 +367,7 @@ impl<'a> StringReader<'a> {
                 if !terminated {
                     self.sess.span_diagnostic.span_fatal_with_code(
                         self.mk_sp(start, suffix_start),
-                        "unterminated character literal",
+                        || "unterminated character literal",
                         error_code!(E0762),
                     )
                 }
@@ -377,7 +377,7 @@ impl<'a> StringReader<'a> {
                 if !terminated {
                     self.sess.span_diagnostic.span_fatal_with_code(
                         self.mk_sp(start + BytePos(1), suffix_start),
-                        "unterminated byte constant",
+                        || "unterminated byte constant",
                         error_code!(E0763),
                     )
                 }
@@ -387,7 +387,7 @@ impl<'a> StringReader<'a> {
                 if !terminated {
                     self.sess.span_diagnostic.span_fatal_with_code(
                         self.mk_sp(start, suffix_start),
-                        "unterminated double quote string",
+                        || "unterminated double quote string",
                         error_code!(E0765),
                     )
                 }
@@ -397,7 +397,7 @@ impl<'a> StringReader<'a> {
                 if !terminated {
                     self.sess.span_diagnostic.span_fatal_with_code(
                         self.mk_sp(start + BytePos(1), suffix_start),
-                        "unterminated double quote byte string",
+                        || "unterminated double quote byte string",
                         error_code!(E0766),
                     )
                 }
@@ -425,7 +425,7 @@ impl<'a> StringReader<'a> {
                         .span_diagnostic
                         .struct_span_err_with_code(
                             self.mk_sp(start, suffix_start),
-                            "no valid digits found for number",
+                            || "no valid digits found for number",
                             error_code!(E0768),
                         )
                         .emit();
@@ -521,7 +521,7 @@ impl<'a> StringReader<'a> {
     ) -> ! {
         let mut err = self.sess.span_diagnostic.struct_span_fatal_with_code(
             self.mk_sp(start, start),
-            "unterminated raw string",
+            || "unterminated raw string",
             error_code!(E0748),
         );
 
@@ -557,7 +557,7 @@ impl<'a> StringReader<'a> {
         let last_bpos = self.pos;
         let mut err = self.sess.span_diagnostic.struct_span_fatal_with_code(
             self.mk_sp(start, last_bpos),
-            msg,
+            || msg,
             error_code!(E0758),
         );
         let mut nested_block_comment_open_idxs = vec![];
@@ -611,7 +611,7 @@ impl<'a> StringReader<'a> {
 
         if expn_data.edition >= Edition::Edition2021 {
             // In Rust 2021, this is a hard error.
-            let mut err = self.sess.span_diagnostic.struct_span_err(prefix_span, &msg);
+            let mut err = self.sess.span_diagnostic.struct_span_err(prefix_span, || msg);
             err.span_label(prefix_span, "unknown prefix");
             if prefix_str == "rb" {
                 err.span_suggestion_verbose(

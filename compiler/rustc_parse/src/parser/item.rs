@@ -67,7 +67,7 @@ impl<'a> Parser<'a> {
         if !self.eat(term) {
             let token_str = super::token_descr(&self.token);
             if !self.maybe_consume_incorrect_semicolon(&items) {
-                let msg = &format!("expected item, found {token_str}");
+                let msg = || format!("expected item, found {token_str}");
                 let mut err = self.struct_span_err(self.token.span, msg);
                 let label = if self.is_kw_followed_by_ident(kw::Let) {
                     "consider using `const` or `static` instead of `let` for global variables"
@@ -169,7 +169,7 @@ impl<'a> Parser<'a> {
         }
         let vs = pprust::vis_to_string(&vis);
         let vs = vs.trim_end();
-        self.struct_span_err(vis.span, &format!("visibility `{vs}` is not followed by an item"))
+        self.struct_span_err(vis.span, || format!("visibility `{vs}` is not followed by an item"))
             .span_label(vis.span, "the visibility")
             .help(&format!("you likely meant to define an item, e.g., `{vs} fn foo() {{}}`"))
             .emit();
@@ -188,8 +188,8 @@ impl<'a> Parser<'a> {
     /// Error in-case `default` was parsed in an in-appropriate context.
     fn error_on_unconsumed_default(&self, def: Defaultness, kind: &ItemKind) {
         if let Defaultness::Default(span) = def {
-            let msg = format!("{} {} cannot be `default`", kind.article(), kind.descr());
-            self.struct_span_err(span, &msg)
+            let msg = || format!("{} {} cannot be `default`", kind.article(), kind.descr());
+            self.struct_span_err(span, msg)
                 .span_label(span, "`default` because of this")
                 .note("only associated `fn`, `const`, and `type` items can be `default`")
                 .emit();
@@ -302,7 +302,7 @@ impl<'a> Parser<'a> {
         self.bump();
         match self.parse_use_item() {
             Ok(u) => {
-                self.struct_span_err(span, format!("expected item, found {token_name}"))
+                self.struct_span_err(span, || format!("expected item, found {token_name}"))
                     .span_suggestion_short(
                         span,
                         "items are imported using the `use` keyword",
@@ -391,8 +391,8 @@ impl<'a> Parser<'a> {
                 ("fn` or `struct", "function or struct", true)
             };
 
-            let msg = format!("missing `{kw}` for {kw_name} definition");
-            let mut err = self.struct_span_err(sp, &msg);
+            let msg = || format!("missing `{kw}` for {kw_name} definition");
+            let mut err = self.struct_span_err(sp, msg);
             if !ambiguous {
                 self.consume_block(Delimiter::Brace, ConsumeClosingDelim::Yes);
                 let suggestion =
@@ -429,12 +429,12 @@ impl<'a> Parser<'a> {
             } else {
                 ("fn` or `struct", "function or struct", true)
             };
-            let msg = format!("missing `{kw}` for {kw_name} definition");
-            let mut err = self.struct_span_err(sp, &msg);
+            let msg = || format!("missing `{kw}` for {kw_name} definition");
+            let mut err = self.struct_span_err(sp, msg);
             if !ambiguous {
                 err.span_suggestion_short(
                     sp,
-                    &format!("add `{kw}` here to parse `{ident}` as a public {kw_name}"),
+                    format!("add `{kw}` here to parse `{ident}` as a public {kw_name}"),
                     format!(" {} ", kw),
                     Applicability::MachineApplicable,
                 );
@@ -1128,8 +1128,8 @@ impl<'a> Parser<'a> {
     fn error_bad_item_kind<T>(&self, span: Span, kind: &ItemKind, ctx: &str) -> Option<T> {
         let span = self.sess.source_map().guess_head_span(span);
         let descr = kind.descr();
-        self.struct_span_err(span, &format!("{descr} is not supported in {ctx}"))
-            .help(&format!("consider moving the {descr} out to a nearby module scope"))
+        self.struct_span_err(span, || format!("{descr} is not supported in {ctx}"))
+            .help(format!("consider moving the {descr} out to a nearby module scope"))
             .emit();
         None
     }
@@ -1276,7 +1276,7 @@ impl<'a> Parser<'a> {
         };
 
         let span = self.prev_token.span.shrink_to_hi();
-        let mut err = self.struct_span_err(span, &format!("missing type for `{kind}` item"));
+        let mut err = self.struct_span_err(span, || format!("missing type for `{kind}` item"));
         err.span_suggestion(
             span,
             "provide a type for the item",
@@ -1429,9 +1429,9 @@ impl<'a> Parser<'a> {
             body
         } else {
             let token_str = super::token_descr(&self.token);
-            let msg = &format!(
-                "expected `where`, `{{`, `(`, or `;` after struct name, found {token_str}"
-            );
+            let msg = || {
+                format!("expected `where`, `{{`, `(`, or `;` after struct name, found {token_str}")
+            };
             let mut err = self.struct_span_err(self.token.span, msg);
             err.span_label(self.token.span, "expected `where`, `{`, `(`, or `;` after struct name");
             return Err(err);
@@ -1463,7 +1463,7 @@ impl<'a> Parser<'a> {
             VariantData::Struct(fields, recovered)
         } else {
             let token_str = super::token_descr(&self.token);
-            let msg = &format!("expected `where` or `{{` after union name, found {token_str}");
+            let msg = || format!("expected `where` or `{{` after union name, found {token_str}");
             let mut err = self.struct_span_err(self.token.span, msg);
             err.span_label(self.token.span, "expected `where` or `{` after union name");
             return Err(err);
@@ -1499,11 +1499,13 @@ impl<'a> Parser<'a> {
             self.eat(&token::CloseDelim(Delimiter::Brace));
         } else {
             let token_str = super::token_descr(&self.token);
-            let msg = &format!(
-                "expected {}`{{` after struct name, found {}",
-                if parsed_where { "" } else { "`where`, or " },
-                token_str
-            );
+            let msg = || {
+                format!(
+                    "expected {}`{{` after struct name, found {}",
+                    if parsed_where { "" } else { "`where`, or " },
+                    token_str
+                )
+            };
             let mut err = self.struct_span_err(self.token.span, msg);
             err.span_label(
                 self.token.span,
@@ -1570,7 +1572,8 @@ impl<'a> Parser<'a> {
         }
         if self.eat(&token::Semi) {
             let sp = self.prev_token.span;
-            let mut err = self.struct_span_err(sp, format!("{adt_ty} fields are separated by `,`"));
+            let mut err =
+                self.struct_span_err(sp, || format!("{adt_ty} fields are separated by `,`"));
             err.span_suggestion_short(
                 sp,
                 "replace `;` with `,`",
@@ -1609,10 +1612,9 @@ impl<'a> Parser<'a> {
             }
             _ => {
                 let sp = self.prev_token.span.shrink_to_hi();
-                let mut err = self.struct_span_err(
-                    sp,
-                    &format!("expected `,`, or `}}`, found {}", super::token_descr(&self.token)),
-                );
+                let mut err = self.struct_span_err(sp, || {
+                    format!("expected `,`, or `}}`, found {}", super::token_descr(&self.token))
+                });
 
                 // Try to recover extra trailing angle brackets
                 let mut recovered = false;
@@ -1755,10 +1757,9 @@ impl<'a> Parser<'a> {
                 let fn_parse_mode = FnParseMode { req_name: |_| true, req_body: true };
                 match self.parse_fn(&mut AttrVec::new(), fn_parse_mode, lo, &inherited_vis) {
                     Ok(_) => {
-                        let mut err = self.struct_span_err(
-                            lo.to(self.prev_token.span),
-                            &format!("functions are not allowed in {adt_ty} definitions"),
-                        );
+                        let mut err = self.struct_span_err(lo.to(self.prev_token.span), || {
+                            format!("functions are not allowed in {adt_ty} definitions")
+                        });
                         err.help(
                             "unlike in C++, Java, and C#, functions are declared in `impl` blocks",
                         );
@@ -1774,10 +1775,9 @@ impl<'a> Parser<'a> {
             } else if self.eat_keyword(kw::Struct) {
                 match self.parse_item_struct() {
                     Ok((ident, _)) => {
-                        let mut err = self.struct_span_err(
-                            lo.with_hi(ident.span.hi()),
-                            &format!("structs are not allowed in {adt_ty} definitions"),
-                        );
+                        let mut err = self.struct_span_err(lo.with_hi(ident.span.hi()), || {
+                            format!("structs are not allowed in {adt_ty} definitions")
+                        });
                         err.help("consider creating a new `struct` definition instead of nesting");
                         err
                     }
@@ -1912,8 +1912,8 @@ impl<'a> Parser<'a> {
         let vstr = pprust::vis_to_string(vis);
         let vstr = vstr.trim_end();
         if macro_rules {
-            let msg = format!("can't qualify macro_rules invocation with `{vstr}`");
-            self.struct_span_err(vis.span, &msg)
+            let msg = || format!("can't qualify macro_rules invocation with `{vstr}`");
+            self.struct_span_err(vis.span, msg)
                 .span_suggestion(
                     vis.span,
                     "try exporting the macro",
@@ -1989,10 +1989,9 @@ impl<'a> Parser<'a> {
             let kw_str = pprust::token_to_string(&kw_token);
             let item = self.parse_item(ForceCollect::No)?;
 
-            self.struct_span_err(
-                kw_token.span,
-                &format!("`{kw_str}` definition cannot be nested inside `{keyword}`"),
-            )
+            self.struct_span_err(kw_token.span, || {
+                format!("`{kw_str}` definition cannot be nested inside `{keyword}`")
+            })
             .span_suggestion(
                 item.unwrap().span,
                 &format!("consider creating a new `{kw_str}` definition instead of nesting"),

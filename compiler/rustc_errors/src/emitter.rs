@@ -269,30 +269,32 @@ pub trait Emitter: Translate {
                ].contains(&sugg.style)
             {
                 let substitution = &sugg.substitutions[0].parts[0].snippet.trim();
-                let msg = if substitution.is_empty() || sugg.style.hide_inline() {
-                    // This substitution is only removal OR we explicitly don't want to show the
-                    // code inline (`hide_inline`). Therefore, we don't show the substitution.
-                    format!("help: {}", &msg)
-                } else {
-                    // Show the default suggestion text with the substitution
-                    format!(
-                        "help: {}{}: `{}`",
-                        &msg,
-                        if self
-                            .source_map()
-                            .map(|sm| is_case_difference(
-                                &**sm,
-                                substitution,
-                                sugg.substitutions[0].parts[0].span,
-                            ))
-                            .unwrap_or(false)
-                        {
-                            " (notice the capitalization)"
-                        } else {
-                            ""
-                        },
-                        substitution,
-                    )
+                let msg = || {
+                    if substitution.is_empty() || sugg.style.hide_inline() {
+                        // This substitution is only removal OR we explicitly don't want to show the
+                        // code inline (`hide_inline`). Therefore, we don't show the substitution.
+                        format!("help: {}", &msg)
+                    } else {
+                        // Show the default suggestion text with the substitution
+                        format!(
+                            "help: {}{}: `{}`",
+                            &msg,
+                            if self
+                                .source_map()
+                                .map(|sm| is_case_difference(
+                                    &**sm,
+                                    substitution,
+                                    sugg.substitutions[0].parts[0].span,
+                                ))
+                                .unwrap_or(false)
+                            {
+                                " (notice the capitalization)"
+                            } else {
+                                ""
+                            },
+                            substitution,
+                        )
+                    }
                 };
                 primary_span.push_span_label(sugg.substitutions[0].parts[0].span, msg);
 
@@ -469,7 +471,7 @@ pub trait Emitter: Translate {
         }
 
         for (label_span, label_text) in new_labels {
-            span.push_span_label(label_span, label_text);
+            span.push_span_label(label_span, || label_text);
         }
     }
 

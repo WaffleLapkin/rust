@@ -236,7 +236,7 @@ impl Session {
             // FIXME(#100717): needs eager translation/lists
             #[allow(rustc::untranslatable_diagnostic)]
             #[allow(rustc::diagnostic_outside_of_impl)]
-            let mut diag = self.struct_warn("skipping const checks");
+            let mut diag = self.struct_warn(|| "skipping const checks");
             for &(span, feature_gate) in unleashed_features.iter() {
                 // FIXME: `span_label` doesn't do anything, so we use "help" as a hack.
                 if let Some(gate) = feature_gate {
@@ -821,7 +821,7 @@ impl Session {
                         // We only call `msg` in case we can actually emit warnings.
                         // Otherwise, this could cause a `delay_good_path_bug` to
                         // trigger (issue #79546).
-                        self.warn(&format!("optimization-fuel-exhausted: {}", msg()));
+                        self.warn(|| format!("optimization-fuel-exhausted: {}", msg()));
                     }
                     fuel.out_of_fuel = true;
                 } else if fuel.remaining > 0 {
@@ -1606,17 +1606,17 @@ fn early_error_handler(output: config::ErrorOutputType) -> rustc_errors::Handler
 #[allow(rustc::untranslatable_diagnostic)]
 #[allow(rustc::diagnostic_outside_of_impl)]
 pub fn early_error_no_abort(output: config::ErrorOutputType, msg: &str) -> ErrorGuaranteed {
-    early_error_handler(output).struct_err(msg).emit()
+    early_error_handler(output).struct_err(|| msg).emit()
 }
 
 #[allow(rustc::untranslatable_diagnostic)]
 #[allow(rustc::diagnostic_outside_of_impl)]
 pub fn early_error(output: config::ErrorOutputType, msg: &str) -> ! {
-    early_error_handler(output).struct_fatal(msg).emit()
+    early_error_handler(output).struct_fatal(|| msg).emit()
 }
 
 #[allow(rustc::untranslatable_diagnostic)]
 #[allow(rustc::diagnostic_outside_of_impl)]
 pub fn early_warn(output: config::ErrorOutputType, msg: &str) {
-    early_error_handler(output).struct_warn(msg).emit()
+    early_error_handler(output).struct_warn(|| msg).emit()
 }

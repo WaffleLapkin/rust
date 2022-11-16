@@ -344,7 +344,7 @@ pub(super) fn check_for_substitution<'a>(
 
     let Some((_ascii_char, ascii_name, token)) = ASCII_ARRAY.iter().find(|&&(c, _, _)| c == ascii_char) else {
         let msg = format!("substitution character not found for '{}'", ch);
-        reader.sess.span_diagnostic.span_bug_no_panic(span, &msg);
+        reader.sess.span_diagnostic.span_bug_no_panic(span, || msg);
         return None;
     };
 
