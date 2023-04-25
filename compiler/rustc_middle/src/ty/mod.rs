@@ -469,7 +469,10 @@ pub struct HotTypeFlags {
 
 impl HotTypeFlags {
     fn from_flags(flags: TypeFlags) -> Self {
-        Self { has_non_region_infer: flags.intersects(TypeFlags::NEEDS_INFER - TypeFlags::HAS_RE_INFER) }
+        Self {
+            has_non_region_infer: flags
+                .intersects(TypeFlags::NEEDS_INFER - TypeFlags::HAS_RE_INFER),
+        }
     }
 
     fn intersects(self, other: Self) -> bool {
@@ -481,6 +484,7 @@ impl HotTypeFlags {
 }
 
 unsafe impl Tag for HotTypeFlags {
+    // at most 3
     const BITS: u32 = 1;
 
     fn into_usize(self) -> usize {
@@ -490,7 +494,7 @@ unsafe impl Tag for HotTypeFlags {
 
     unsafe fn from_usize(tag: usize) -> Self {
         debug_assert!(tag <= 0b1);
-        
+
         let has_non_region_infer = tag & 0b1 == 1;
         Self { has_non_region_infer }
     }
@@ -1097,7 +1101,10 @@ impl<'tcx> TermKind<'tcx> {
             TermKind::Ty(ty) => {
                 let r: &WithCachedTypeInfo<ty::TyKind<'tcx>> = ty.0.pointer().0;
                 // Ensure we can use the tag bits.
-                assert_eq!(mem::align_of_val::<WithCachedTypeInfo<ty::TyKind<'tcx>>>(r) & TAG_MASK, 0);
+                assert_eq!(
+                    mem::align_of_val::<WithCachedTypeInfo<ty::TyKind<'tcx>>>(r) & TAG_MASK,
+                    0
+                );
                 (TYPE_TAG, r as *const WithCachedTypeInfo<ty::TyKind<'tcx>> as usize)
             }
             TermKind::Const(ct) => {
