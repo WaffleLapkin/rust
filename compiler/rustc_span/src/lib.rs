@@ -20,6 +20,7 @@
 #![feature(min_specialization)]
 #![feature(rustc_attrs)]
 #![feature(let_chains)]
+#![feature(lazy_cell)]
 #![deny(rustc::untranslatable_diagnostic)]
 #![deny(rustc::diagnostic_outside_of_impl)]
 
@@ -78,6 +79,12 @@ use sha2::Sha256;
 
 #[cfg(test)]
 mod tests;
+
+pub static R: std::sync::LazyLock<
+    std::sync::Mutex<rustc_data_structures::fx::FxHashMap<String, usize>>,
+> = std::sync::LazyLock::new(|| {
+    std::sync::Mutex::new(rustc_data_structures::fx::FxHashMap::default())
+});
 
 /// Per-session global variables: this struct is stored in thread-local storage
 /// in such a way that it is accessible without any kind of handle to all

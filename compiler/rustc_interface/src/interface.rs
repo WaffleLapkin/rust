@@ -303,6 +303,21 @@ pub fn run_compiler<R: Send>(config: Config, f: impl FnOnce(&Compiler) -> R + Se
                 };
 
                 let prof = compiler.sess.prof.clone();
+
+                let mut rr = std::mem::take(&mut *rustc_span::R.lock().unwrap())
+                    .into_iter()
+                    .collect::<Vec<_>>();
+                rr.sort_by_key(|&(_, n)| n);
+
+                eprintln!(
+                    "=== {:?}; {:?} ===",
+                    compiler.sess.io.output_dir, compiler.sess.io.output_file
+                );
+                for (flags, num) in rr {
+                    eprintln!("{flags:>28} {num:>12}");
+                }
+                eprintln!("=== === === === === === ===");
+
                 prof.generic_activity("drop_compiler").run(move || drop(compiler));
                 r
             })

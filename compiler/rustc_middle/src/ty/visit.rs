@@ -33,6 +33,8 @@ pub trait TypeVisitableExt<'tcx>: TypeVisitable<TyCtxt<'tcx>> {
     }
 
     fn has_type_flags(&self, flags: TypeFlags) -> bool {
+        *rustc_span::R.lock().unwrap().entry(format!("{flags:?}")).or_default() += 1;
+
         // N.B. Even though this uses a visitor, the visitor does not actually
         //      recurse through the whole `TypeVisitable` implementor type.
         //
