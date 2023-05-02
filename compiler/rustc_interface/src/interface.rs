@@ -309,12 +309,9 @@ pub fn run_compiler<R: Send>(config: Config, f: impl FnOnce(&Compiler) -> R + Se
                     .collect::<Vec<_>>();
                 rr.sort_by_key(|&(_, n)| n);
 
-                eprintln!(
-                    "=== {:?}; {:?} ===",
-                    compiler.sess.io.output_dir, compiler.sess.io.output_file
-                );
+                eprintln!("=== === {:?} === ===", compiler.sess.opts.crate_name);
                 for (flags, num) in rr {
-                    eprintln!("{flags:>28} {num:>12}");
+                    eprintln!("{flags:>80} {num:>12}");
                 }
                 eprintln!("=== === === === === === ===");
 
