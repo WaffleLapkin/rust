@@ -324,6 +324,7 @@ impl<'tcx> FnCtxt<'_, 'tcx> {
         // reach a member of N. If so, it falls back to `()`. Else
         // `!`.
         let mut diverging_fallback = UnordMap::with_capacity(diverging_vids.len());
+        let spans = std::cell::LazyCell::new(|| vid_spans(self.inh, self.body_id));
         for &diverging_vid in &diverging_vids {
             let diverging_ty = Ty::new_var(self.tcx, diverging_vid);
             let root_vid = self.root_var(diverging_vid);
@@ -343,6 +344,22 @@ impl<'tcx> FnCtxt<'_, 'tcx> {
             let found_infer_var_info = ty::InferVarInfo {
                 self_in_trait: infer_var_infos.items().any(|info| info.self_in_trait),
                 output: infer_var_infos.items().any(|info| info.output),
+            };
+
+            let warn = || {
+                if let Some(&span) = spans.get(&diverging_vid) {
+                    self.tcx
+                        .sess
+                        .parse_sess
+                        .dcx
+                        .span_warn(span, format!("fallback detected uwu {diverging_ty:?}"));
+                } else {
+                    self.tcx
+                        .sess
+                        .parse_sess
+                        .dcx
+                        .warn(format!("fallback detected uwu {diverging_ty:?}"));
+                }
             };
 
             if found_infer_var_info.self_in_trait && found_infer_var_info.output {
@@ -372,12 +389,15 @@ impl<'tcx> FnCtxt<'_, 'tcx> {
                 // compiler/rustc_trait_selection/src/traits/relationships.rs.
                 debug!("fallback to () - found trait and projection: {:?}", diverging_vid);
                 diverging_fallback.insert(diverging_ty, self.tcx.types.unit);
+                warn();
             } else if can_reach_non_diverging {
                 debug!("fallback to () - reached non-diverging: {:?}", diverging_vid);
                 diverging_fallback.insert(diverging_ty, self.tcx.types.unit);
+                warn();
             } else {
                 debug!("fallback to ! - all diverging: {:?}", diverging_vid);
                 diverging_fallback.insert(diverging_ty, Ty::new_diverging_default(self.tcx));
+                warn();
             }
         }
 
@@ -432,4 +452,65 @@ impl<'tcx> FnCtxt<'_, 'tcx> {
     fn root_vid(&self, ty: Ty<'tcx>) -> Option<ty::TyVid> {
         Some(self.root_var(self.shallow_resolve(ty).ty_vid()?))
     }
+}
+
+fn vid_spans<'a, 'tcx>(
+    inh: &'a crate::Inherited<'tcx>,
+    body_id: rustc_span::def_id::LocalDefId,
+) -> UnordMap<ty::TyVid, rustc_span::Span> {
+    use rustc_hir as hir;
+
+    let tcx = inh.infcx.tcx;
+    let body_id = tcx.hir().maybe_body_owned_by(body_id).unwrap();
+    let body = tcx.hir().body(body_id);
+    let mut res = <_>::default();
+
+    struct Collector<'a, 'tcx, 'r> {
+        inh: &'a crate::Inherited<'tcx>,
+        res: &'r mut UnordMap<ty::TyVid, rustc_span::Span>,
+    }
+
+    use hir::intravisit::Visitor;
+    impl hir::intravisit::Visitor<'_> for Collector<'_, '_, '_> {
+        fn visit_expr(&mut self, ex: &'_ hir::Expr<'_>) {
+            let typeck_results = self.inh.typeck_results.borrow();
+            let ty = typeck_results.expr_ty(ex);
+
+            struct VidCollector<'r> {
+                res: &'r mut UnordMap<ty::TyVid, rustc_span::Span>,
+                sp: rustc_span::Span,
+            }
+
+            use ty::{TyCtxt, TypeVisitor};
+            impl<'tcx> TypeVisitor<TyCtxt<'tcx>> for VidCollector<'_> {
+                fn visit_ty(&mut self, t: Ty<'tcx>) -> std::ops::ControlFlow<Self::BreakTy> {
+                    use ty::TypeSuperVisitable;
+
+                    if let Some(vid) = t.ty_vid() {
+                        // If there already was a span, insert the smallest span (i.e. the most precise)
+                        self.res
+                            .entry(vid)
+                            .and_modify(|s| {
+                                if self.sp.hi().0 - self.sp.lo().0 < s.hi().0 - s.lo().0 {
+                                    *s = self.sp;
+                                }
+                            })
+                            .or_insert(self.sp);
+                    }
+
+                    t.super_visit_with(self)
+                }
+            }
+
+            VidCollector { res: self.res, sp: ex.span }.visit_ty(ty);
+
+            hir::intravisit::walk_expr(self, ex);
+        }
+    }
+
+    Collector { inh, res: &mut res }.visit_expr(&body.value);
+
+    debug!(target: "wffl", ?res, "collected the following output vars for {body_id:?}");
+
+    res
 }
