@@ -286,6 +286,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "baremetal-fake-std"
+version = "0.1.0"
+dependencies = [
+ "baremetal-macros",
+]
+
+[[package]]
+name = "baremetal-macros"
+version = "0.1.0"
+
+[[package]]
 name = "base64"
 version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -788,6 +799,7 @@ dependencies = [
 name = "core"
 version = "0.0.0"
 dependencies = [
+ "baremetal-fake-std",
  "rand",
  "rand_xorshift",
 ]

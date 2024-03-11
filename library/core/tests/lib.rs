@@ -123,6 +123,21 @@
 #![allow(internal_features)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(fuzzy_provenance_casts)]
+#![cfg_attr(
+    all(target_arch = "x86_64", target_os = "none"),
+    no_std,
+    feature(custom_test_frameworks, lang_items, prelude_import, error_in_core),
+    //test_runner(..)
+)]
+
+#[cfg(all(target_arch = "x86_64", target_os = "none"))]
+#[prelude_import]
+#[allow(unused_imports)]
+use baremetal_fake_std::prelude::rust_2021::*;
+
+#[cfg(all(target_arch = "tricore", test))]
+#[macro_use]
+extern crate baremetal_fake_std as std;
 
 mod alloc;
 mod any;
