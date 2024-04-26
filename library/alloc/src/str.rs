@@ -366,6 +366,23 @@ impl str {
                   without modifying the original"]
     #[stable(feature = "unicode_case_mapping", since = "1.2.0")]
     pub fn to_lowercase(&self) -> String {
+        fn map_uppercase_sigma(from: &str, i: usize, to: &mut String) {
+            // See https://www.unicode.org/versions/Unicode7.0.0/ch03.pdf#G33992
+            // for the definition of `Final_Sigma`.
+            debug_assert!('Σ'.len_utf8() == 2);
+            let is_word_final = case_ignorable_then_cased(from[..i].chars().rev())
+                && !case_ignorable_then_cased(from[i + 2..].chars());
+            to.push_str(if is_word_final { "ς" } else { "σ" });
+        }
+
+        fn case_ignorable_then_cased<I: Iterator<Item = char>>(iter: I) -> bool {
+            use core::unicode::{Case_Ignorable, Cased};
+            match iter.skip_while(|&c| Case_Ignorable(c)).next() {
+                Some(c) => Cased(c),
+                None => false,
+            }
+        }
+
         let out = convert_while_ascii(self.as_bytes(), u8::to_ascii_lowercase);
 
         // Safety: we know this is a valid char boundary since
@@ -398,24 +415,7 @@ impl str {
                 }
             }
         }
-        return s;
-
-        fn map_uppercase_sigma(from: &str, i: usize, to: &mut String) {
-            // See https://www.unicode.org/versions/Unicode7.0.0/ch03.pdf#G33992
-            // for the definition of `Final_Sigma`.
-            debug_assert!('Σ'.len_utf8() == 2);
-            let is_word_final = case_ignorable_then_cased(from[..i].chars().rev())
-                && !case_ignorable_then_cased(from[i + 2..].chars());
-            to.push_str(if is_word_final { "ς" } else { "σ" });
-        }
-
-        fn case_ignorable_then_cased<I: Iterator<Item = char>>(iter: I) -> bool {
-            use core::unicode::{Case_Ignorable, Cased};
-            match iter.skip_while(|&c| Case_Ignorable(c)).next() {
-                Some(c) => Cased(c),
-                None => false,
-            }
-        }
+        return s
     }
 
     /// Returns the uppercase equivalent of this string slice, as a new [`String`].

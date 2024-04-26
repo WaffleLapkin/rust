@@ -286,7 +286,7 @@ impl<T, A: Allocator> Iterator for IntoIter<T, A> {
             ptr::copy_nonoverlapping(self.ptr.as_ptr(), raw_ary.as_mut_ptr() as *mut T, N);
             self.ptr = self.ptr.add(N);
             Ok(raw_ary.transpose().assume_init())
-        };
+        }
     }
 
     unsafe fn __iterator_get_unchecked(&mut self, i: usize) -> Self::Item

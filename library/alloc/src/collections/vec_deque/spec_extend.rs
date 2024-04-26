@@ -40,7 +40,7 @@ where
             // Inner loop to avoid repeatedly calling `reserve`.
             while self.len < self.capacity() {
                 let Some(element) = iter.next() else {
-                    return;
+                    return
                 };
                 // SAFETY: The loop condition guarantees that `self.len() < self.capacity()`.
                 unsafe { push_unchecked(self, element) };

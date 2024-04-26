@@ -710,7 +710,7 @@ impl ops::Index<ops::RangeFrom<usize>> for CStr {
                 "index out of bounds: the len is {} but the index is {}",
                 bytes.len(),
                 index.start
-            );
+            )
         }
     }
 }

@@ -49,6 +49,17 @@ unsafe impl Sync for Thread {}
 impl Thread {
     // unsafe: see thread::Builder::spawn_unchecked for safety requirements
     pub unsafe fn new(stack: usize, p: Box<dyn FnOnce()>) -> io::Result<Thread> {
+        extern "C" fn thread_start(main: *mut libc::c_void) -> *mut libc::c_void {
+            unsafe {
+                // Next, set up our stack overflow handler which may get triggered if we run
+                // out of stack.
+                let _handler = stack_overflow::Handler::new();
+                // Finally, let's run some code.
+                Box::from_raw(main as *mut Box<dyn FnOnce()>)();
+            }
+            ptr::null_mut()
+        }
+
         let p = Box::into_raw(Box::new(p));
         let mut native: libc::pthread_t = mem::zeroed();
         let mut attr: libc::pthread_attr_t = mem::zeroed();
@@ -90,24 +101,13 @@ impl Thread {
         // which is clearly worse.
         assert_eq!(libc::pthread_attr_destroy(&mut attr), 0);
 
-        return if ret != 0 {
+        if ret != 0 {
             // The thread failed to start and as a result p was not consumed. Therefore, it is
             // safe to reconstruct the box so that it gets deallocated.
             drop(Box::from_raw(p));
             Err(io::Error::from_raw_os_error(ret))
         } else {
             Ok(Thread { id: native })
-        };
-
-        extern "C" fn thread_start(main: *mut libc::c_void) -> *mut libc::c_void {
-            unsafe {
-                // Next, set up our stack overflow handler which may get triggered if we run
-                // out of stack.
-                let _handler = stack_overflow::Handler::new();
-                // Finally, let's run some code.
-                Box::from_raw(main as *mut Box<dyn FnOnce()>)();
-            }
-            ptr::null_mut()
         }
     }
 

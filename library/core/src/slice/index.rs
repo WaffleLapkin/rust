@@ -42,13 +42,13 @@ const fn slice_start_index_len_fail(index: usize, len: usize) -> ! {
 #[inline]
 #[track_caller]
 fn slice_start_index_len_fail_rt(index: usize, len: usize) -> ! {
-    panic!("range start index {index} out of range for slice of length {len}");
+    panic!("range start index {index} out of range for slice of length {len}")
 }
 
 #[inline]
 #[track_caller]
 const fn slice_start_index_len_fail_ct(_: usize, _: usize) -> ! {
-    panic!("slice start index is out of range for slice");
+    panic!("slice start index is out of range for slice")
 }
 
 #[cfg_attr(not(feature = "panic_immediate_abort"), inline(never), cold)]
@@ -63,13 +63,13 @@ const fn slice_end_index_len_fail(index: usize, len: usize) -> ! {
 #[inline]
 #[track_caller]
 fn slice_end_index_len_fail_rt(index: usize, len: usize) -> ! {
-    panic!("range end index {index} out of range for slice of length {len}");
+    panic!("range end index {index} out of range for slice of length {len}")
 }
 
 #[inline]
 #[track_caller]
 const fn slice_end_index_len_fail_ct(_: usize, _: usize) -> ! {
-    panic!("slice end index is out of range for slice");
+    panic!("slice end index is out of range for slice")
 }
 
 #[cfg_attr(not(feature = "panic_immediate_abort"), inline(never), cold)]
@@ -84,27 +84,27 @@ const fn slice_index_order_fail(index: usize, end: usize) -> ! {
 #[inline]
 #[track_caller]
 fn slice_index_order_fail_rt(index: usize, end: usize) -> ! {
-    panic!("slice index starts at {index} but ends at {end}");
+    panic!("slice index starts at {index} but ends at {end}")
 }
 
 #[inline]
 #[track_caller]
 const fn slice_index_order_fail_ct(_: usize, _: usize) -> ! {
-    panic!("slice index start is larger than end");
+    panic!("slice index start is larger than end")
 }
 
 #[cfg_attr(not(feature = "panic_immediate_abort"), inline(never), cold)]
 #[cfg_attr(feature = "panic_immediate_abort", inline)]
 #[track_caller]
 const fn slice_start_index_overflow_fail() -> ! {
-    panic!("attempted to index slice from after maximum usize");
+    panic!("attempted to index slice from after maximum usize")
 }
 
 #[cfg_attr(not(feature = "panic_immediate_abort"), inline(never), cold)]
 #[cfg_attr(feature = "panic_immediate_abort", inline)]
 #[track_caller]
 const fn slice_end_index_overflow_fail() -> ! {
-    panic!("attempted to index slice up to maximum usize");
+    panic!("attempted to index slice up to maximum usize")
 }
 
 mod private_slice_index {

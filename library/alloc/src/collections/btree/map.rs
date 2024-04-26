@@ -2635,7 +2635,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
                         length: &mut self.length,
                         alloc: &mut *self.alloc,
                     },
-                };
+                }
             }
             Some(root) => root.borrow_mut(),
         };
@@ -2758,7 +2758,7 @@ impl<K, V, A: Allocator + Clone> BTreeMap<K, V, A> {
                         length: &mut self.length,
                         alloc: &mut *self.alloc,
                     },
-                };
+                }
             }
             Some(root) => root.borrow_mut(),
         };
@@ -3127,7 +3127,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMutKey<'a, K, V, A> {
                 *root = Some(node.forget_type());
                 *self.length += 1;
                 self.current = Some(handle.left_edge());
-                return;
+                return
             }
             Some(current) => current,
         };
@@ -3170,7 +3170,7 @@ impl<'a, K: Ord, V, A: Allocator + Clone> CursorMutKey<'a, K, V, A> {
                         *root = Some(node.forget_type());
                         *self.length += 1;
                         self.current = Some(handle.right_edge());
-                        return;
+                        return
                     }
                     Some(root) => root.borrow_mut().last_leaf_edge(),
                 }

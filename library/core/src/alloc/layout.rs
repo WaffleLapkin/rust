@@ -431,9 +431,6 @@ impl Layout {
     #[rustc_const_unstable(feature = "const_alloc_layout", issue = "67521")]
     #[inline]
     pub const fn array<T>(n: usize) -> Result<Self, LayoutError> {
-        // Reduce the amount of code we need to monomorphize per `T`.
-        return inner(mem::size_of::<T>(), Alignment::of::<T>(), n);
-
         #[inline]
         const fn inner(
             element_size: usize,
@@ -461,6 +458,9 @@ impl Layout {
             // And `Alignment` guarantees it's a power of two.
             unsafe { Ok(Layout::from_size_align_unchecked(array_size, align.as_usize())) }
         }
+
+        // Reduce the amount of code we need to monomorphize per `T`.
+        inner(mem::size_of::<T>(), Alignment::of::<T>(), n)
     }
 }
 

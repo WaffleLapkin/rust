@@ -1400,12 +1400,12 @@ pub const fn can_not_overflow<T>(radix: u32, is_signed_ty: bool, digits: &[u8]) 
 
 #[track_caller]
 const fn from_str_radix_panic_ct(_radix: u32) -> ! {
-    panic!("from_str_radix_int: must lie in the range `[2, 36]`");
+    panic!("from_str_radix_int: must lie in the range `[2, 36]`")
 }
 
 #[track_caller]
 fn from_str_radix_panic_rt(radix: u32) -> ! {
-    panic!("from_str_radix_int: must lie in the range `[2, 36]` - found {}", radix);
+    panic!("from_str_radix_int: must lie in the range `[2, 36]` - found {}", radix)
 }
 
 #[cfg_attr(not(feature = "panic_immediate_abort"), inline(never))]
@@ -1467,7 +1467,7 @@ macro_rules! from_str_radix {
 
                 let (is_positive, mut digits) = match src {
                     [b'+' | b'-'] => {
-                        return Err(PIE { kind: InvalidDigit });
+                        return Err(PIE { kind: InvalidDigit })
                     }
                     [b'+', rest @ ..] => (true, rest),
                     [b'-', rest @ ..] if is_signed_ty => (false, rest),

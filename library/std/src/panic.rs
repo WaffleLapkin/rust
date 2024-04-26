@@ -60,7 +60,7 @@ pub use core::panic::{AssertUnwindSafe, RefUnwindSafe, UnwindSafe};
 #[inline]
 #[track_caller]
 pub fn panic_any<M: 'static + Any + Send>(msg: M) -> ! {
-    crate::panicking::begin_panic(msg);
+    crate::panicking::begin_panic(msg)
 }
 
 #[stable(feature = "catch_unwind", since = "1.9.0")]

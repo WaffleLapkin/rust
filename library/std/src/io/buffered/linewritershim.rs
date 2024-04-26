@@ -70,7 +70,7 @@ impl<'a, W: ?Sized + Write> Write for LineWriterShim<'a, W> {
             // we exceed the inner buffer's size)
             None => {
                 self.flush_if_completed_line()?;
-                return self.buffer.write(buf);
+                return self.buffer.write(buf)
             }
             // Otherwise, arrange for the lines to be written directly to the
             // inner writer.
@@ -191,7 +191,7 @@ impl<'a, W: ?Sized + Write> Write for LineWriterShim<'a, W> {
             // No newlines; just do a normal buffered write
             None => {
                 self.flush_if_completed_line()?;
-                return self.buffer.write_vectored(bufs);
+                return self.buffer.write_vectored(bufs)
             }
             Some(i) => i,
         };

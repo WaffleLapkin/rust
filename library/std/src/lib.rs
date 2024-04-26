@@ -407,6 +407,7 @@
 // tidy-alphabetical-end
 //
 #![default_lib_allocator]
+#![cfg_attr(not(bootstrap), rustc_never_type_options(diverging_block_default = "unit"))]
 
 // Explicitly import the prelude. The compiler uses this same unstable attribute
 // to import the prelude implicitly when building crates that depend on std.

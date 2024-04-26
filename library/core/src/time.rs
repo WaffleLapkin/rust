@@ -698,7 +698,7 @@ impl Duration {
                 secs = sub_secs;
                 self.nanos.0 + NANOS_PER_SEC - rhs.nanos.0
             } else {
-                return None;
+                return None
             };
             debug_assert!(nanos < NANOS_PER_SEC);
             Some(Duration::new(secs, nanos))
@@ -1534,7 +1534,7 @@ macro_rules! try_from_secs {
             let secs = u64::from(mant) << (exp - $mant_bits);
             (secs, 0)
         } else {
-            return Err(TryFromFloatSecsError { kind: TryFromFloatSecsErrorKind::OverflowOrNan });
+            return Err(TryFromFloatSecsError { kind: TryFromFloatSecsErrorKind::OverflowOrNan })
         };
 
         Ok(Duration::new(secs, nanos))

@@ -1439,7 +1439,7 @@ impl TwoWaySearcher {
                 Some(&b) => b,
                 None => {
                     self.position = haystack.len();
-                    return S::rejecting(old_pos, self.position);
+                    return S::rejecting(old_pos, self.position)
                 }
             };
 
@@ -1523,7 +1523,7 @@ impl TwoWaySearcher {
                 Some(&b) => b,
                 None => {
                     self.end = 0;
-                    return S::rejecting(0, old_end);
+                    return S::rejecting(0, old_end)
                 }
             };
 
@@ -1771,7 +1771,7 @@ fn simd_contains(needle: &str, haystack: &str) -> Option<bool> {
         else {
             // fall back to other search methods if we can't find any different bytes
             // since we could otherwise hit some degenerate cases
-            return None;
+            return None
         };
         second_probe_offset
     };
@@ -1810,7 +1810,7 @@ fn simd_contains(needle: &str, haystack: &str) -> Option<bool> {
             }
             mask &= !(1 << trailing);
         }
-        return false;
+        return false
     };
 
     let test_chunk = |idx| -> u16 {
@@ -1826,7 +1826,7 @@ fn simd_contains(needle: &str, haystack: &str) -> Option<bool> {
         let both = eq_first.bitand(eq_last);
         let mask = both.to_bitmask() as u16;
 
-        return mask;
+        return mask
     };
 
     let mut i = 0;

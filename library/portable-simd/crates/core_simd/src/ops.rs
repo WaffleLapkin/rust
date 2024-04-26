@@ -81,7 +81,7 @@ macro_rules! int_divrem_guard {
         },
         $int:ident ) => {
         if $rhs.simd_eq(Simd::splat(0 as _)).any() {
-            panic!($zero);
+            panic!($zero)
         } else {
             // Prevent otherwise-UB overflow on the MIN / -1 case.
             let rhs = if <$int>::MIN != 0 {

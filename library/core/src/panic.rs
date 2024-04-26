@@ -29,16 +29,16 @@ pub macro panic_2015 {
     ),
     // Use `panic_str` instead of `panic_display::<&str>` for non_fmt_panic lint.
     ($msg:expr $(,)?) => ({
-        $crate::panicking::panic_str($msg);
+        $crate::panicking::panic_str($msg)
     }),
     // Special-case the single-argument case for const_panic.
     ("{}", $arg:expr $(,)?) => ({
-        $crate::panicking::panic_display(&$arg);
+        $crate::panicking::panic_display(&$arg)
     }),
     ($fmt:expr, $($arg:tt)+) => ({
         // Semicolon to prevent temporaries inside the formatting machinery from
         // being considered alive in the caller after the panic_fmt call.
-        $crate::panicking::panic_fmt($crate::const_format_args!($fmt, $($arg)+));
+        $crate::panicking::panic_fmt($crate::const_format_args!($fmt, $($arg)+))
     }),
 }
 
@@ -54,12 +54,12 @@ pub macro panic_2021 {
     ),
     // Special-case the single-argument case for const_panic.
     ("{}", $arg:expr $(,)?) => ({
-        $crate::panicking::panic_display(&$arg);
+        $crate::panicking::panic_display(&$arg)
     }),
     ($($t:tt)+) => ({
         // Semicolon to prevent temporaries inside the formatting machinery from
         // being considered alive in the caller after the panic_fmt call.
-        $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+        $crate::panicking::panic_fmt($crate::const_format_args!($($t)+))
     }),
 }
 
@@ -86,7 +86,7 @@ pub macro panic_2021 {
         const fn panic_cold_explicit() -> ! {
             $crate::panicking::panic_explicit()
         }
-        panic_cold_explicit();
+        panic_cold_explicit()
     }),
     // Special-case the single-argument case for const_panic.
     ("{}", $arg:expr $(,)?) => ({
@@ -98,12 +98,12 @@ pub macro panic_2021 {
         const fn panic_cold_display<T: $crate::fmt::Display>(arg: &T) -> ! {
             $crate::panicking::panic_display(arg)
         }
-        panic_cold_display(&$arg);
+        panic_cold_display(&$arg)
     }),
     ($($t:tt)+) => ({
         // Semicolon to prevent temporaries inside the formatting machinery from
         // being considered alive in the caller after the panic_fmt call.
-        $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+        $crate::panicking::panic_fmt($crate::const_format_args!($($t)+))
     }),
 }
 

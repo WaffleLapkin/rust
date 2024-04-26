@@ -3634,7 +3634,7 @@ impl<T> [T] {
             panic!(
                 "source slice length ({}) does not match destination slice length ({})",
                 src_len, dst_len,
-            );
+            )
         }
 
         if self.len() != src.len() {

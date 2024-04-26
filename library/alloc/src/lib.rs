@@ -210,6 +210,7 @@
 // that the feature-gate isn't enabled. Ideally, it wouldn't check for the feature gate for docs
 // from other crates, but since this can only appear for lang items, it doesn't seem worth fixing.
 #![feature(intra_doc_pointers)]
+#![cfg_attr(not(bootstrap), rustc_never_type_options(diverging_block_default = "unit"))]
 
 // Allow testing this library
 #[cfg(test)]

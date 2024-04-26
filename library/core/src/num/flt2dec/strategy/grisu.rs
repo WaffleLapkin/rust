@@ -166,6 +166,115 @@ pub fn format_shortest_opt<'a>(
     d: &Decoded,
     buf: &'a mut [MaybeUninit<u8>],
 ) -> Option<(/*digits*/ &'a [u8], /*exp*/ i16)> {
+    // we've generated all significant digits of `plus1`, but not sure if it's the optimal one.
+    // for example, if `minus1` is 3.14153... and `plus1` is 3.14158..., there are 5 different
+    // shortest representation from 3.14154 to 3.14158 but we only have the greatest one.
+    // we have to successively decrease the last digit and check if this is the optimal repr.
+    // there are at most 9 candidates (..1 to ..9), so this is fairly quick. ("rounding" phase)
+    //
+    // the function checks if this "optimal" repr is actually within the ulp ranges,
+    // and also, it is possible that the "second-to-optimal" repr can actually be optimal
+    // due to the rounding error. in either cases this returns `None`. ("weeding" phase)
+    //
+    // all arguments here are scaled by the common (but implicit) value `k`, so that:
+    // - `remainder = (plus1 % 10^kappa) * k`
+    // - `threshold = (plus1 - minus1) * k` (and also, `remainder < threshold`)
+    // - `plus1v = (plus1 - v) * k` (and also, `threshold > plus1v` from prior invariants)
+    // - `ten_kappa = 10^kappa * k`
+    // - `ulp = 2^-e * k`
+    fn round_and_weed(
+        buf: &mut [u8],
+        exp: i16,
+        remainder: u64,
+        threshold: u64,
+        plus1v: u64,
+        ten_kappa: u64,
+        ulp: u64,
+    ) -> Option<(&[u8], i16)> {
+        assert!(!buf.is_empty());
+
+        // produce two approximations to `v` (actually `plus1 - v`) within 1.5 ulps.
+        // the resulting representation should be the closest representation to both.
+        //
+        // here `plus1 - v` is used since calculations are done with respect to `plus1`
+        // in order to avoid overflow/underflow (hence the seemingly swapped names).
+        let plus1v_down = plus1v + ulp; // plus1 - (v - 1 ulp)
+        let plus1v_up = plus1v - ulp; // plus1 - (v + 1 ulp)
+
+        // decrease the last digit and stop at the closest representation to `v + 1 ulp`.
+        let mut plus1w = remainder; // plus1w(n) = plus1 - w(n)
+        {
+            let last = buf.last_mut().unwrap();
+
+            // we work with the approximated digits `w(n)`, which is initially equal to `plus1 -
+            // plus1 % 10^kappa`. after running the loop body `n` times, `w(n) = plus1 -
+            // plus1 % 10^kappa - n * 10^kappa`. we set `plus1w(n) = plus1 - w(n) =
+            // plus1 % 10^kappa + n * 10^kappa` (thus `remainder = plus1w(0)`) to simplify checks.
+            // note that `plus1w(n)` is always increasing.
+            //
+            // we have three conditions to terminate. any of them will make the loop unable to
+            // proceed, but we then have at least one valid representation known to be closest to
+            // `v + 1 ulp` anyway. we will denote them as TC1 through TC3 for brevity.
+            //
+            // TC1: `w(n) <= v + 1 ulp`, i.e., this is the last repr that can be the closest one.
+            // this is equivalent to `plus1 - w(n) = plus1w(n) >= plus1 - (v + 1 ulp) = plus1v_up`.
+            // combined with TC2 (which checks if `w(n+1)` is valid), this prevents the possible
+            // overflow on the calculation of `plus1w(n)`.
+            //
+            // TC2: `w(n+1) < minus1`, i.e., the next repr definitely does not round to `v`.
+            // this is equivalent to `plus1 - w(n) + 10^kappa = plus1w(n) + 10^kappa >
+            // plus1 - minus1 = threshold`. the left hand side can overflow, but we know
+            // `threshold > plus1v`, so if TC1 is false, `threshold - plus1w(n) >
+            // threshold - (plus1v - 1 ulp) > 1 ulp` and we can safely test if
+            // `threshold - plus1w(n) < 10^kappa` instead.
+            //
+            // TC3: `abs(w(n) - (v + 1 ulp)) <= abs(w(n+1) - (v + 1 ulp))`, i.e., the next repr is
+            // no closer to `v + 1 ulp` than the current repr. given `z(n) = plus1v_up - plus1w(n)`,
+            // this becomes `abs(z(n)) <= abs(z(n+1))`. again assuming that TC1 is false, we have
+            // `z(n) > 0`. we have two cases to consider:
+            //
+            // - when `z(n+1) >= 0`: TC3 becomes `z(n) <= z(n+1)`. as `plus1w(n)` is increasing,
+            //   `z(n)` should be decreasing and this is clearly false.
+            // - when `z(n+1) < 0`:
+            //   - TC3a: the precondition is `plus1v_up < plus1w(n) + 10^kappa`. assuming TC2 is
+            //     false, `threshold >= plus1w(n) + 10^kappa` so it cannot overflow.
+            //   - TC3b: TC3 becomes `z(n) <= -z(n+1)`, i.e., `plus1v_up - plus1w(n) >=
+            //     plus1w(n+1) - plus1v_up = plus1w(n) + 10^kappa - plus1v_up`. the negated TC1
+            //     gives `plus1v_up > plus1w(n)`, so it cannot overflow or underflow when
+            //     combined with TC3a.
+            //
+            // consequently, we should stop when `TC1 || TC2 || (TC3a && TC3b)`. the following is
+            // equal to its inverse, `!TC1 && !TC2 && (!TC3a || !TC3b)`.
+            while plus1w < plus1v_up
+                && threshold - plus1w >= ten_kappa
+                && (plus1w + ten_kappa < plus1v_up
+                    || plus1v_up - plus1w >= plus1w + ten_kappa - plus1v_up)
+            {
+                *last -= 1;
+                debug_assert!(*last > b'0'); // the shortest repr cannot end with `0`
+                plus1w += ten_kappa;
+            }
+        }
+
+        // check if this representation is also the closest representation to `v - 1 ulp`.
+        //
+        // this is simply same to the terminating conditions for `v + 1 ulp`, with all `plus1v_up`
+        // replaced by `plus1v_down` instead. overflow analysis equally holds.
+        if plus1w < plus1v_down
+            && threshold - plus1w >= ten_kappa
+            && (plus1w + ten_kappa < plus1v_down
+                || plus1v_down - plus1w >= plus1w + ten_kappa - plus1v_down)
+        {
+            return None;
+        }
+
+        // now we have the closest representation to `v` between `plus1` and `minus1`.
+        // this is too liberal, though, so we reject any `w(n)` not between `plus0` and `minus0`,
+        // i.e., `plus1 - plus1w(n) <= minus0` or `plus1 - plus1w(n) >= plus0`. we utilize the facts
+        // that `threshold = plus1 - minus1` and `plus1 - plus0 = minus0 - minus1 = 2 ulp`.
+        if 2 * ulp <= plus1w && plus1w <= threshold - 4 * ulp { Some((buf, exp)) } else { None }
+    }
+
     assert!(d.mant > 0);
     assert!(d.minus > 0);
     assert!(d.plus > 0);
@@ -337,115 +446,6 @@ pub fn format_shortest_opt<'a>(
         // restore invariants
         remainder = r;
     }
-
-    // we've generated all significant digits of `plus1`, but not sure if it's the optimal one.
-    // for example, if `minus1` is 3.14153... and `plus1` is 3.14158..., there are 5 different
-    // shortest representation from 3.14154 to 3.14158 but we only have the greatest one.
-    // we have to successively decrease the last digit and check if this is the optimal repr.
-    // there are at most 9 candidates (..1 to ..9), so this is fairly quick. ("rounding" phase)
-    //
-    // the function checks if this "optimal" repr is actually within the ulp ranges,
-    // and also, it is possible that the "second-to-optimal" repr can actually be optimal
-    // due to the rounding error. in either cases this returns `None`. ("weeding" phase)
-    //
-    // all arguments here are scaled by the common (but implicit) value `k`, so that:
-    // - `remainder = (plus1 % 10^kappa) * k`
-    // - `threshold = (plus1 - minus1) * k` (and also, `remainder < threshold`)
-    // - `plus1v = (plus1 - v) * k` (and also, `threshold > plus1v` from prior invariants)
-    // - `ten_kappa = 10^kappa * k`
-    // - `ulp = 2^-e * k`
-    fn round_and_weed(
-        buf: &mut [u8],
-        exp: i16,
-        remainder: u64,
-        threshold: u64,
-        plus1v: u64,
-        ten_kappa: u64,
-        ulp: u64,
-    ) -> Option<(&[u8], i16)> {
-        assert!(!buf.is_empty());
-
-        // produce two approximations to `v` (actually `plus1 - v`) within 1.5 ulps.
-        // the resulting representation should be the closest representation to both.
-        //
-        // here `plus1 - v` is used since calculations are done with respect to `plus1`
-        // in order to avoid overflow/underflow (hence the seemingly swapped names).
-        let plus1v_down = plus1v + ulp; // plus1 - (v - 1 ulp)
-        let plus1v_up = plus1v - ulp; // plus1 - (v + 1 ulp)
-
-        // decrease the last digit and stop at the closest representation to `v + 1 ulp`.
-        let mut plus1w = remainder; // plus1w(n) = plus1 - w(n)
-        {
-            let last = buf.last_mut().unwrap();
-
-            // we work with the approximated digits `w(n)`, which is initially equal to `plus1 -
-            // plus1 % 10^kappa`. after running the loop body `n` times, `w(n) = plus1 -
-            // plus1 % 10^kappa - n * 10^kappa`. we set `plus1w(n) = plus1 - w(n) =
-            // plus1 % 10^kappa + n * 10^kappa` (thus `remainder = plus1w(0)`) to simplify checks.
-            // note that `plus1w(n)` is always increasing.
-            //
-            // we have three conditions to terminate. any of them will make the loop unable to
-            // proceed, but we then have at least one valid representation known to be closest to
-            // `v + 1 ulp` anyway. we will denote them as TC1 through TC3 for brevity.
-            //
-            // TC1: `w(n) <= v + 1 ulp`, i.e., this is the last repr that can be the closest one.
-            // this is equivalent to `plus1 - w(n) = plus1w(n) >= plus1 - (v + 1 ulp) = plus1v_up`.
-            // combined with TC2 (which checks if `w(n+1)` is valid), this prevents the possible
-            // overflow on the calculation of `plus1w(n)`.
-            //
-            // TC2: `w(n+1) < minus1`, i.e., the next repr definitely does not round to `v`.
-            // this is equivalent to `plus1 - w(n) + 10^kappa = plus1w(n) + 10^kappa >
-            // plus1 - minus1 = threshold`. the left hand side can overflow, but we know
-            // `threshold > plus1v`, so if TC1 is false, `threshold - plus1w(n) >
-            // threshold - (plus1v - 1 ulp) > 1 ulp` and we can safely test if
-            // `threshold - plus1w(n) < 10^kappa` instead.
-            //
-            // TC3: `abs(w(n) - (v + 1 ulp)) <= abs(w(n+1) - (v + 1 ulp))`, i.e., the next repr is
-            // no closer to `v + 1 ulp` than the current repr. given `z(n) = plus1v_up - plus1w(n)`,
-            // this becomes `abs(z(n)) <= abs(z(n+1))`. again assuming that TC1 is false, we have
-            // `z(n) > 0`. we have two cases to consider:
-            //
-            // - when `z(n+1) >= 0`: TC3 becomes `z(n) <= z(n+1)`. as `plus1w(n)` is increasing,
-            //   `z(n)` should be decreasing and this is clearly false.
-            // - when `z(n+1) < 0`:
-            //   - TC3a: the precondition is `plus1v_up < plus1w(n) + 10^kappa`. assuming TC2 is
-            //     false, `threshold >= plus1w(n) + 10^kappa` so it cannot overflow.
-            //   - TC3b: TC3 becomes `z(n) <= -z(n+1)`, i.e., `plus1v_up - plus1w(n) >=
-            //     plus1w(n+1) - plus1v_up = plus1w(n) + 10^kappa - plus1v_up`. the negated TC1
-            //     gives `plus1v_up > plus1w(n)`, so it cannot overflow or underflow when
-            //     combined with TC3a.
-            //
-            // consequently, we should stop when `TC1 || TC2 || (TC3a && TC3b)`. the following is
-            // equal to its inverse, `!TC1 && !TC2 && (!TC3a || !TC3b)`.
-            while plus1w < plus1v_up
-                && threshold - plus1w >= ten_kappa
-                && (plus1w + ten_kappa < plus1v_up
-                    || plus1v_up - plus1w >= plus1w + ten_kappa - plus1v_up)
-            {
-                *last -= 1;
-                debug_assert!(*last > b'0'); // the shortest repr cannot end with `0`
-                plus1w += ten_kappa;
-            }
-        }
-
-        // check if this representation is also the closest representation to `v - 1 ulp`.
-        //
-        // this is simply same to the terminating conditions for `v + 1 ulp`, with all `plus1v_up`
-        // replaced by `plus1v_down` instead. overflow analysis equally holds.
-        if plus1w < plus1v_down
-            && threshold - plus1w >= ten_kappa
-            && (plus1w + ten_kappa < plus1v_down
-                || plus1v_down - plus1w >= plus1w + ten_kappa - plus1v_down)
-        {
-            return None;
-        }
-
-        // now we have the closest representation to `v` between `plus1` and `minus1`.
-        // this is too liberal, though, so we reject any `w(n)` not between `plus0` and `minus0`,
-        // i.e., `plus1 - plus1w(n) <= minus0` or `plus1 - plus1w(n) >= plus0`. we utilize the facts
-        // that `threshold = plus1 - minus1` and `plus1 - plus0 = minus0 - minus1 = 2 ulp`.
-        if 2 * ulp <= plus1w && plus1w <= threshold - 4 * ulp { Some((buf, exp)) } else { None }
-    }
 }
 
 /// The shortest mode implementation for Grisu with Dragon fallback.
@@ -473,166 +473,6 @@ pub fn format_exact_opt<'a>(
     buf: &'a mut [MaybeUninit<u8>],
     limit: i16,
 ) -> Option<(/*digits*/ &'a [u8], /*exp*/ i16)> {
-    assert!(d.mant > 0);
-    assert!(d.mant < (1 << 61)); // we need at least three bits of additional precision
-    assert!(!buf.is_empty());
-
-    // normalize and scale `v`.
-    let v = Fp { f: d.mant, e: d.exp }.normalize();
-    let (minusk, cached) = cached_power(ALPHA - v.e - 64, GAMMA - v.e - 64);
-    let v = v.mul(&cached);
-
-    // divide `v` into integral and fractional parts.
-    let e = -v.e as usize;
-    let vint = (v.f >> e) as u32;
-    let vfrac = v.f & ((1 << e) - 1);
-
-    let requested_digits = buf.len();
-
-    const POW10_UP_TO_9: [u32; 10] =
-        [1, 10, 100, 1000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000];
-
-    // We deviate from the original algorithm here and do some early checks to determine if we can satisfy requested_digits.
-    // If we determine that we can't, we exit early and avoid most of the heavy lifting that the algorithm otherwise does.
-    //
-    // When vfrac is zero, we can easily determine if vint can satisfy requested digits:
-    //      If requested_digits >= 11, vint is not able to exhaust the count by itself since 10^(11 -1) > u32 max value >= vint.
-    //      If vint < 10^(requested_digits - 1), vint cannot exhaust the count.
-    //      Otherwise, vint might be able to exhaust the count and we need to execute the rest of the code.
-    if (vfrac == 0) && ((requested_digits >= 11) || (vint < POW10_UP_TO_9[requested_digits - 1])) {
-        return None;
-    }
-
-    // both old `v` and new `v` (scaled by `10^-k`) has an error of < 1 ulp (Theorem 5.1).
-    // as we don't know the error is positive or negative, we use two approximations
-    // spaced equally and have the maximal error of 2 ulps (same to the shortest case).
-    //
-    // the goal is to find the exactly rounded series of digits that are common to
-    // both `v - 1 ulp` and `v + 1 ulp`, so that we are maximally confident.
-    // if this is not possible, we don't know which one is the correct output for `v`,
-    // so we give up and fall back.
-    //
-    // `err` is defined as `1 ulp * 2^e` here (same to the ulp in `vfrac`),
-    // and we will scale it whenever `v` gets scaled.
-    let mut err = 1;
-
-    // calculate the largest `10^max_kappa` no more than `v` (thus `v < 10^(max_kappa+1)`).
-    // this is an upper bound of `kappa` below.
-    let (max_kappa, max_ten_kappa) = max_pow10_no_more_than(vint);
-
-    let mut i = 0;
-    let exp = max_kappa as i16 - minusk + 1;
-
-    // if we are working with the last-digit limitation, we need to shorten the buffer
-    // before the actual rendering in order to avoid double rounding.
-    // note that we have to enlarge the buffer again when rounding up happens!
-    let len = if exp <= limit {
-        // oops, we cannot even produce *one* digit.
-        // this is possible when, say, we've got something like 9.5 and it's being rounded to 10.
-        //
-        // in principle we can immediately call `possibly_round` with an empty buffer,
-        // but scaling `max_ten_kappa << e` by 10 can result in overflow.
-        // thus we are being sloppy here and widen the error range by a factor of 10.
-        // this will increase the false negative rate, but only very, *very* slightly;
-        // it can only matter noticeably when the mantissa is bigger than 60 bits.
-        //
-        // SAFETY: `len=0`, so the obligation of having initialized this memory is trivial.
-        return unsafe {
-            possibly_round(buf, 0, exp, limit, v.f / 10, (max_ten_kappa as u64) << e, err << e)
-        };
-    } else if ((exp as i32 - limit as i32) as usize) < buf.len() {
-        (exp - limit) as usize
-    } else {
-        buf.len()
-    };
-    debug_assert!(len > 0);
-
-    // render integral parts.
-    // the error is entirely fractional, so we don't need to check it in this part.
-    let mut kappa = max_kappa as i16;
-    let mut ten_kappa = max_ten_kappa; // 10^kappa
-    let mut remainder = vint; // digits yet to be rendered
-    loop {
-        // we always have at least one digit to render
-        // invariants:
-        // - `remainder < 10^(kappa+1)`
-        // - `vint = d[0..n-1] * 10^(kappa+1) + remainder`
-        //   (it follows that `remainder = vint % 10^(kappa+1)`)
-
-        // divide `remainder` by `10^kappa`. both are scaled by `2^-e`.
-        let q = remainder / ten_kappa;
-        let r = remainder % ten_kappa;
-        debug_assert!(q < 10);
-        buf[i] = MaybeUninit::new(b'0' + q as u8);
-        i += 1;
-
-        // is the buffer full? run the rounding pass with the remainder.
-        if i == len {
-            let vrem = ((r as u64) << e) + vfrac; // == (v % 10^kappa) * 2^e
-            // SAFETY: we have initialized `len` many bytes.
-            return unsafe {
-                possibly_round(buf, len, exp, limit, vrem, (ten_kappa as u64) << e, err << e)
-            };
-        }
-
-        // break the loop when we have rendered all integral digits.
-        // the exact number of digits is `max_kappa + 1` as `plus1 < 10^(max_kappa+1)`.
-        if i > max_kappa as usize {
-            debug_assert_eq!(ten_kappa, 1);
-            debug_assert_eq!(kappa, 0);
-            break;
-        }
-
-        // restore invariants
-        kappa -= 1;
-        ten_kappa /= 10;
-        remainder = r;
-    }
-
-    // render fractional parts.
-    //
-    // in principle we can continue to the last available digit and check for the accuracy.
-    // unfortunately we are working with the finite-sized integers, so we need some criterion
-    // to detect the overflow. V8 uses `remainder > err`, which becomes false when
-    // the first `i` significant digits of `v - 1 ulp` and `v` differ. however this rejects
-    // too many otherwise valid input.
-    //
-    // since the later phase has a correct overflow detection, we instead use tighter criterion:
-    // we continue til `err` exceeds `10^kappa / 2`, so that the range between `v - 1 ulp` and
-    // `v + 1 ulp` definitely contains two or more rounded representations. this is same to
-    // the first two comparisons from `possibly_round`, for the reference.
-    let mut remainder = vfrac;
-    let maxerr = 1 << (e - 1);
-    while err < maxerr {
-        // invariants, where `m = max_kappa + 1` (# of digits in the integral part):
-        // - `remainder < 2^e`
-        // - `vfrac * 10^(n-m) = d[m..n-1] * 2^e + remainder`
-        // - `err = 10^(n-m)`
-
-        remainder *= 10; // won't overflow, `2^e * 10 < 2^64`
-        err *= 10; // won't overflow, `err * 10 < 2^e * 5 < 2^64`
-
-        // divide `remainder` by `10^kappa`.
-        // both are scaled by `2^e / 10^kappa`, so the latter is implicit here.
-        let q = remainder >> e;
-        let r = remainder & ((1 << e) - 1);
-        debug_assert!(q < 10);
-        buf[i] = MaybeUninit::new(b'0' + q as u8);
-        i += 1;
-
-        // is the buffer full? run the rounding pass with the remainder.
-        if i == len {
-            // SAFETY: we have initialized `len` many bytes.
-            return unsafe { possibly_round(buf, len, exp, limit, r, 1 << e, err) };
-        }
-
-        // restore invariants
-        remainder = r;
-    }
-
-    // further calculation is useless (`possibly_round` definitely fails), so we give up.
-    return None;
-
     // we've generated all requested digits of `v`, which should be also same to corresponding
     // digits of `v - 1 ulp`. now we check if there is a unique representation shared by
     // both `v - 1 ulp` and `v + 1 ulp`; this can be either same to generated digits, or
@@ -755,6 +595,166 @@ pub fn format_exact_opt<'a>(
         // rounding down and others are rounding up) and give up.
         None
     }
+
+    assert!(d.mant > 0);
+    assert!(d.mant < (1 << 61)); // we need at least three bits of additional precision
+    assert!(!buf.is_empty());
+
+    // normalize and scale `v`.
+    let v = Fp { f: d.mant, e: d.exp }.normalize();
+    let (minusk, cached) = cached_power(ALPHA - v.e - 64, GAMMA - v.e - 64);
+    let v = v.mul(&cached);
+
+    // divide `v` into integral and fractional parts.
+    let e = -v.e as usize;
+    let vint = (v.f >> e) as u32;
+    let vfrac = v.f & ((1 << e) - 1);
+
+    let requested_digits = buf.len();
+
+    const POW10_UP_TO_9: [u32; 10] =
+        [1, 10, 100, 1000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000];
+
+    // We deviate from the original algorithm here and do some early checks to determine if we can satisfy requested_digits.
+    // If we determine that we can't, we exit early and avoid most of the heavy lifting that the algorithm otherwise does.
+    //
+    // When vfrac is zero, we can easily determine if vint can satisfy requested digits:
+    //      If requested_digits >= 11, vint is not able to exhaust the count by itself since 10^(11 -1) > u32 max value >= vint.
+    //      If vint < 10^(requested_digits - 1), vint cannot exhaust the count.
+    //      Otherwise, vint might be able to exhaust the count and we need to execute the rest of the code.
+    if (vfrac == 0) && ((requested_digits >= 11) || (vint < POW10_UP_TO_9[requested_digits - 1])) {
+        return None;
+    }
+
+    // both old `v` and new `v` (scaled by `10^-k`) has an error of < 1 ulp (Theorem 5.1).
+    // as we don't know the error is positive or negative, we use two approximations
+    // spaced equally and have the maximal error of 2 ulps (same to the shortest case).
+    //
+    // the goal is to find the exactly rounded series of digits that are common to
+    // both `v - 1 ulp` and `v + 1 ulp`, so that we are maximally confident.
+    // if this is not possible, we don't know which one is the correct output for `v`,
+    // so we give up and fall back.
+    //
+    // `err` is defined as `1 ulp * 2^e` here (same to the ulp in `vfrac`),
+    // and we will scale it whenever `v` gets scaled.
+    let mut err = 1;
+
+    // calculate the largest `10^max_kappa` no more than `v` (thus `v < 10^(max_kappa+1)`).
+    // this is an upper bound of `kappa` below.
+    let (max_kappa, max_ten_kappa) = max_pow10_no_more_than(vint);
+
+    let mut i = 0;
+    let exp = max_kappa as i16 - minusk + 1;
+
+    // if we are working with the last-digit limitation, we need to shorten the buffer
+    // before the actual rendering in order to avoid double rounding.
+    // note that we have to enlarge the buffer again when rounding up happens!
+    let len = if exp <= limit {
+        // oops, we cannot even produce *one* digit.
+        // this is possible when, say, we've got something like 9.5 and it's being rounded to 10.
+        //
+        // in principle we can immediately call `possibly_round` with an empty buffer,
+        // but scaling `max_ten_kappa << e` by 10 can result in overflow.
+        // thus we are being sloppy here and widen the error range by a factor of 10.
+        // this will increase the false negative rate, but only very, *very* slightly;
+        // it can only matter noticeably when the mantissa is bigger than 60 bits.
+        //
+        // SAFETY: `len=0`, so the obligation of having initialized this memory is trivial.
+        return unsafe {
+            possibly_round(buf, 0, exp, limit, v.f / 10, (max_ten_kappa as u64) << e, err << e)
+        }
+    } else if ((exp as i32 - limit as i32) as usize) < buf.len() {
+        (exp - limit) as usize
+    } else {
+        buf.len()
+    };
+    debug_assert!(len > 0);
+
+    // render integral parts.
+    // the error is entirely fractional, so we don't need to check it in this part.
+    let mut kappa = max_kappa as i16;
+    let mut ten_kappa = max_ten_kappa; // 10^kappa
+    let mut remainder = vint; // digits yet to be rendered
+    loop {
+        // we always have at least one digit to render
+        // invariants:
+        // - `remainder < 10^(kappa+1)`
+        // - `vint = d[0..n-1] * 10^(kappa+1) + remainder`
+        //   (it follows that `remainder = vint % 10^(kappa+1)`)
+
+        // divide `remainder` by `10^kappa`. both are scaled by `2^-e`.
+        let q = remainder / ten_kappa;
+        let r = remainder % ten_kappa;
+        debug_assert!(q < 10);
+        buf[i] = MaybeUninit::new(b'0' + q as u8);
+        i += 1;
+
+        // is the buffer full? run the rounding pass with the remainder.
+        if i == len {
+            let vrem = ((r as u64) << e) + vfrac; // == (v % 10^kappa) * 2^e
+            // SAFETY: we have initialized `len` many bytes.
+            return unsafe {
+                possibly_round(buf, len, exp, limit, vrem, (ten_kappa as u64) << e, err << e)
+            };
+        }
+
+        // break the loop when we have rendered all integral digits.
+        // the exact number of digits is `max_kappa + 1` as `plus1 < 10^(max_kappa+1)`.
+        if i > max_kappa as usize {
+            debug_assert_eq!(ten_kappa, 1);
+            debug_assert_eq!(kappa, 0);
+            break;
+        }
+
+        // restore invariants
+        kappa -= 1;
+        ten_kappa /= 10;
+        remainder = r;
+    }
+
+    // render fractional parts.
+    //
+    // in principle we can continue to the last available digit and check for the accuracy.
+    // unfortunately we are working with the finite-sized integers, so we need some criterion
+    // to detect the overflow. V8 uses `remainder > err`, which becomes false when
+    // the first `i` significant digits of `v - 1 ulp` and `v` differ. however this rejects
+    // too many otherwise valid input.
+    //
+    // since the later phase has a correct overflow detection, we instead use tighter criterion:
+    // we continue til `err` exceeds `10^kappa / 2`, so that the range between `v - 1 ulp` and
+    // `v + 1 ulp` definitely contains two or more rounded representations. this is same to
+    // the first two comparisons from `possibly_round`, for the reference.
+    let mut remainder = vfrac;
+    let maxerr = 1 << (e - 1);
+    while err < maxerr {
+        // invariants, where `m = max_kappa + 1` (# of digits in the integral part):
+        // - `remainder < 2^e`
+        // - `vfrac * 10^(n-m) = d[m..n-1] * 2^e + remainder`
+        // - `err = 10^(n-m)`
+
+        remainder *= 10; // won't overflow, `2^e * 10 < 2^64`
+        err *= 10; // won't overflow, `err * 10 < 2^e * 5 < 2^64`
+
+        // divide `remainder` by `10^kappa`.
+        // both are scaled by `2^e / 10^kappa`, so the latter is implicit here.
+        let q = remainder >> e;
+        let r = remainder & ((1 << e) - 1);
+        debug_assert!(q < 10);
+        buf[i] = MaybeUninit::new(b'0' + q as u8);
+        i += 1;
+
+        // is the buffer full? run the rounding pass with the remainder.
+        if i == len {
+            // SAFETY: we have initialized `len` many bytes.
+            return unsafe { possibly_round(buf, len, exp, limit, r, 1 << e, err) };
+        }
+
+        // restore invariants
+        remainder = r;
+    }
+
+    // further calculation is useless (`possibly_round` definitely fails), so we give up.
+    None
 }
 
 /// The exact and fixed mode implementation for Grisu with Dragon fallback.

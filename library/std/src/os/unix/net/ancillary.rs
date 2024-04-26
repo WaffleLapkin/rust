@@ -102,10 +102,10 @@ fn add_to_ancillary_data<T>(
         if let Ok(source_len) = u32::try_from(source_len) {
             source_len
         } else {
-            return false;
+            return false
         }
     } else {
-        return false;
+        return false
     };
 
     unsafe {
@@ -114,7 +114,7 @@ fn add_to_ancillary_data<T>(
         let new_length = if let Some(new_length) = additional_space.checked_add(*length) {
             new_length
         } else {
-            return false;
+            return false
         };
 
         if new_length > buffer.len() {

@@ -238,7 +238,7 @@ where
     where
         Self: TrustedRandomAccessNoCoerce,
     {
-        unreachable!("Always specialized");
+        unreachable!("Always specialized")
     }
 
     #[inline]
@@ -627,7 +627,7 @@ unsafe trait SpecTrustedRandomAccess: Iterator {
 
 unsafe impl<I: Iterator> SpecTrustedRandomAccess for I {
     default unsafe fn try_get_unchecked(&mut self, _: usize) -> Self::Item {
-        panic!("Should only be called on TrustedRandomAccess iterators");
+        panic!("Should only be called on TrustedRandomAccess iterators")
     }
 }
 

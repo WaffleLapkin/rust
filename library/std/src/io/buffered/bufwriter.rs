@@ -600,7 +600,7 @@ impl<W: ?Sized + Write> Write for BufWriter<W> {
                     self.panicked = true;
                     let r = self.get_mut().write(buf);
                     self.panicked = false;
-                    return r;
+                    return r
                 } else {
                     // SAFETY: We checked whether or not the spare capacity was large enough above.
                     // If it was, then we're safe already. If it wasn't, we flushed, making
@@ -612,7 +612,7 @@ impl<W: ?Sized + Write> Write for BufWriter<W> {
                     buf.len()
                 }
             } else {
-                return Ok(0);
+                return Ok(0)
             };
             debug_assert!(total_written != 0);
             for buf in iter {

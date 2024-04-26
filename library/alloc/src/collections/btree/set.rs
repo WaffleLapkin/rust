@@ -428,13 +428,13 @@ impl<T, A: Allocator + Clone> BTreeSet<T, A> {
             if let (Some(self_min), Some(self_max)) = (self.first(), self.last()) {
                 (self_min, self_max)
             } else {
-                return Difference { inner: DifferenceInner::Iterate(self.iter()) };
+                return Difference { inner: DifferenceInner::Iterate(self.iter()) }
             };
         let (other_min, other_max) =
             if let (Some(other_min), Some(other_max)) = (other.first(), other.last()) {
                 (other_min, other_max)
             } else {
-                return Difference { inner: DifferenceInner::Iterate(self.iter()) };
+                return Difference { inner: DifferenceInner::Iterate(self.iter()) }
             };
         Difference {
             inner: match (self_min.cmp(other_max), self_max.cmp(other_min)) {
@@ -520,13 +520,13 @@ impl<T, A: Allocator + Clone> BTreeSet<T, A> {
             if let (Some(self_min), Some(self_max)) = (self.first(), self.last()) {
                 (self_min, self_max)
             } else {
-                return Intersection { inner: IntersectionInner::Answer(None) };
+                return Intersection { inner: IntersectionInner::Answer(None) }
             };
         let (other_min, other_max) =
             if let (Some(other_min), Some(other_max)) = (other.first(), other.last()) {
                 (other_min, other_max)
             } else {
-                return Intersection { inner: IntersectionInner::Answer(None) };
+                return Intersection { inner: IntersectionInner::Answer(None) }
             };
         Intersection {
             inner: match (self_min.cmp(other_max), self_max.cmp(other_min)) {
@@ -697,13 +697,13 @@ impl<T, A: Allocator + Clone> BTreeSet<T, A> {
             if let (Some(self_min), Some(self_max)) = (self.first(), self.last()) {
                 (self_min, self_max)
             } else {
-                return true; // self is empty
+                return true // self is empty
             };
         let (other_min, other_max) =
             if let (Some(other_min), Some(other_max)) = (other.first(), other.last()) {
                 (other_min, other_max)
             } else {
-                return false; // other is empty
+                return false // other is empty
             };
         let mut self_iter = self.iter();
         match self_min.cmp(other_min) {

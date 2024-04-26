@@ -2751,7 +2751,7 @@ impl<T, I: iter::TrustedLen<Item = T>> ToRcSlice<T> for I {
             // length exceeding `usize::MAX`.
             // The default implementation would collect into a vec which would panic.
             // Thus we panic here immediately without invoking `Vec` code.
-            panic!("capacity overflow");
+            panic!("capacity overflow")
         }
     }
 }

@@ -288,7 +288,7 @@ where
         let (base_pos, offset) = match style {
             SeekFrom::Start(n) => {
                 self.pos = n;
-                return Ok(n);
+                return Ok(n)
             }
             SeekFrom::End(n) => (self.inner.as_ref().len() as u64, n),
             SeekFrom::Current(n) => (self.pos, n),

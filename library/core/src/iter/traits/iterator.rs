@@ -4054,7 +4054,7 @@ pub trait Iterator {
     where
         Self: TrustedRandomAccessNoCoerce,
     {
-        unreachable!("Always specialized");
+        unreachable!("Always specialized")
     }
 }
 

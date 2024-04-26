@@ -376,13 +376,13 @@ extern "Rust" {
 #[cold]
 pub const fn handle_alloc_error(layout: Layout) -> ! {
     const fn ct_error(_: Layout) -> ! {
-        panic!("allocation failed");
+        panic!("allocation failed")
     }
 
     #[inline]
     fn rt_error(layout: Layout) -> ! {
         unsafe {
-            __rust_alloc_error_handler(layout.size(), layout.align());
+            __rust_alloc_error_handler(layout.size(), layout.align())
         }
     }
 

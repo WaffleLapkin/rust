@@ -216,7 +216,7 @@ impl<H> WithHeader<H> {
             // stable since 1.28 ._.
             //
             // On the other hand, look at this gorgeous turbofish!
-            alloc::handle_alloc_error(Layout::new::<()>());
+            alloc::handle_alloc_error(Layout::new::<()>())
         };
 
         unsafe {
@@ -253,7 +253,7 @@ impl<H> WithHeader<H> {
     fn try_new<T>(header: H, value: T) -> Result<WithHeader<H>, core::alloc::AllocError> {
         let value_layout = Layout::new::<T>();
         let Ok((layout, value_offset)) = Self::alloc_layout(value_layout) else {
-            return Err(core::alloc::AllocError);
+            return Err(core::alloc::AllocError)
         };
 
         unsafe {

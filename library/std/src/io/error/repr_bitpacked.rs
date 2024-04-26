@@ -268,7 +268,7 @@ where
                 // Using this rather than unwrap meaningfully improves the code
                 // for callers which only care about one variant (usually
                 // `Custom`)
-                core::hint::unreachable_unchecked();
+                core::hint::unreachable_unchecked()
             });
             ErrorData::Simple(kind)
         }
@@ -282,7 +282,7 @@ where
         }
         _ => {
             // Can't happen, and compiler can tell
-            unreachable!();
+            unreachable!()
         }
     }
 }

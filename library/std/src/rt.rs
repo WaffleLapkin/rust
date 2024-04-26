@@ -40,7 +40,7 @@ macro_rules! rtabort {
     ($($t:tt)*) => {
         {
             rtprintpanic!("fatal runtime error: {}\n", format_args!($($t)*));
-            crate::sys::abort_internal();
+            crate::sys::abort_internal()
         }
     }
 }
@@ -124,7 +124,7 @@ fn lang_start_internal(
     use crate::{mem, panic};
     let rt_abort = move |e| {
         mem::forget(e);
-        rtabort!("initialization or cleanup bug");
+        rtabort!("initialization or cleanup bug")
     };
     // Guard against the code called by this function from unwinding outside of the Rust-controlled
     // code, which is UB. This is a requirement imposed by a combination of how the
@@ -141,7 +141,7 @@ fn lang_start_internal(
     let ret_code = panic::catch_unwind(move || panic::catch_unwind(main).unwrap_or(101) as isize)
         .map_err(move |e| {
             mem::forget(e);
-            rtabort!("drop of the panic payload panicked");
+            rtabort!("drop of the panic payload panicked")
         });
     panic::catch_unwind(cleanup).map_err(rt_abort)?;
     ret_code

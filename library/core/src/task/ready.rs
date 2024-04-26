@@ -50,8 +50,6 @@
 pub macro ready($e:expr) {
     match $e {
         $crate::task::Poll::Ready(t) => t,
-        $crate::task::Poll::Pending => {
-            return $crate::task::Poll::Pending;
-        }
+        $crate::task::Poll::Pending => return $crate::task::Poll::Pending,
     }
 }

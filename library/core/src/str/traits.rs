@@ -78,7 +78,7 @@ where
 #[cold]
 #[track_caller]
 const fn str_index_overflow_fail() -> ! {
-    panic!("attempted to index str up to maximum usize");
+    panic!("attempted to index str up to maximum usize")
 }
 
 /// Implements substring slicing with syntax `&self[..]` or `&mut self[..]`.

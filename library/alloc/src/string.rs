@@ -643,7 +643,7 @@ impl String {
             }
             valid
         } else {
-            return Cow::Borrowed("");
+            return Cow::Borrowed("")
         };
 
         const REPLACEMENT: &str = "\u{FFFD}";

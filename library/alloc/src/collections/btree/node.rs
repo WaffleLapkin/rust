@@ -1064,7 +1064,7 @@ impl<'a, K: 'a, V: 'a> Handle<NodeRef<marker::Mut<'a>, K, V, marker::Leaf>, mark
                     split_root(SplitResult { left: root, ..split });
                     // SAFETY: we have finished splitting and can now re-awaken the
                     // handle to the inserted element.
-                    return unsafe { handle.awaken() };
+                    return unsafe { handle.awaken() }
                 }
             };
         }

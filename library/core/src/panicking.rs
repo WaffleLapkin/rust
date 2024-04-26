@@ -114,10 +114,10 @@ pub const fn panic_nounwind_fmt(fmt: fmt::Arguments<'_>, force_no_backtrace: boo
     #[track_caller]
     const fn comptime(fmt: fmt::Arguments<'_>, _force_no_backtrace: bool) -> ! {
         // We don't unwind anyway at compile-time so we can call the regular `panic_fmt`.
-        panic_fmt(fmt);
+        panic_fmt(fmt)
     }
 
-    super::intrinsics::const_eval_select((fmt, force_no_backtrace), comptime, runtime);
+    super::intrinsics::const_eval_select((fmt, force_no_backtrace), comptime, runtime)
 }
 
 // Next we define a bunch of higher-level wrappers that all bottom out in the two core functions
@@ -138,7 +138,7 @@ pub const fn panic(expr: &'static str) -> ! {
     // truncation and padding (even though none is used here). Using
     // Arguments::new_const may allow the compiler to omit Formatter::pad from the
     // output binary, saving up to a few kilobytes.
-    panic_fmt(fmt::Arguments::new_const(&[expr]));
+    panic_fmt(fmt::Arguments::new_const(&[expr]))
 }
 
 // We generate functions for usage by compiler-generated assertions.
@@ -172,7 +172,7 @@ macro_rules! panic_const {
                     // truncation and padding (even though none is used here). Using
                     // Arguments::new_const may allow the compiler to omit Formatter::pad from the
                     // output binary, saving up to a few kilobytes.
-                    panic_fmt(fmt::Arguments::new_const(&[$message]));
+                    panic_fmt(fmt::Arguments::new_const(&[$message]))
                 }
             )+
         }
@@ -212,7 +212,7 @@ panic_const! {
 #[rustc_nounwind]
 #[rustc_const_unstable(feature = "panic_internals", issue = "none")]
 pub const fn panic_nounwind(expr: &'static str) -> ! {
-    panic_nounwind_fmt(fmt::Arguments::new_const(&[expr]), /* force_no_backtrace */ false);
+    panic_nounwind_fmt(fmt::Arguments::new_const(&[expr]), /* force_no_backtrace */ false)
 }
 
 /// Like `panic_nounwind`, but also inhibits showing a backtrace.
@@ -220,7 +220,7 @@ pub const fn panic_nounwind(expr: &'static str) -> ! {
 #[cfg_attr(feature = "panic_immediate_abort", inline)]
 #[rustc_nounwind]
 pub fn panic_nounwind_nobacktrace(expr: &'static str) -> ! {
-    panic_nounwind_fmt(fmt::Arguments::new_const(&[expr]), /* force_no_backtrace */ true);
+    panic_nounwind_fmt(fmt::Arguments::new_const(&[expr]), /* force_no_backtrace */ true)
 }
 
 #[inline]
@@ -228,7 +228,7 @@ pub fn panic_nounwind_nobacktrace(expr: &'static str) -> ! {
 #[rustc_diagnostic_item = "panic_str"]
 #[rustc_const_unstable(feature = "panic_internals", issue = "none")]
 pub const fn panic_str(expr: &str) -> ! {
-    panic_display(&expr);
+    panic_display(&expr)
 }
 
 #[track_caller]
@@ -236,14 +236,14 @@ pub const fn panic_str(expr: &str) -> ! {
 #[cfg_attr(feature = "panic_immediate_abort", inline)]
 #[rustc_const_unstable(feature = "panic_internals", issue = "none")]
 pub const fn panic_explicit() -> ! {
-    panic_display(&"explicit panic");
+    panic_display(&"explicit panic")
 }
 
 #[inline]
 #[track_caller]
 #[rustc_diagnostic_item = "unreachable_display"] // needed for `non-fmt-panics` lint
 pub fn unreachable_display<T: fmt::Display>(x: &T) -> ! {
-    panic_fmt(format_args!("internal error: entered unreachable code: {}", *x));
+    panic_fmt(format_args!("internal error: entered unreachable code: {}", *x))
 }
 
 #[inline]
@@ -253,7 +253,7 @@ pub fn unreachable_display<T: fmt::Display>(x: &T) -> ! {
 #[rustc_const_panic_str]
 #[rustc_const_unstable(feature = "panic_internals", issue = "none")]
 pub const fn panic_display<T: fmt::Display>(x: &T) -> ! {
-    panic_fmt(format_args!("{}", *x));
+    panic_fmt(format_args!("{}", *x))
 }
 
 #[cfg_attr(not(feature = "panic_immediate_abort"), inline(never), cold)]
@@ -322,12 +322,12 @@ fn panic_in_cleanup() -> ! {
 pub const fn const_panic_fmt(fmt: fmt::Arguments<'_>) -> ! {
     if let Some(msg) = fmt.as_str() {
         // The panic_display function is hooked by const eval.
-        panic_display(&msg);
+        panic_display(&msg)
     } else {
         // SAFETY: This is only evaluated at compile time, which reliably
         // handles this UB (in case this branch turns out to be reachable
         // somehow).
-        unsafe { crate::hint::unreachable_unchecked() };
+        unsafe { crate::hint::unreachable_unchecked() }
     }
 }
 
@@ -374,7 +374,7 @@ pub fn assert_matches_failed<T: fmt::Debug + ?Sized>(
             f.write_str(self.0)
         }
     }
-    assert_failed_inner(AssertKind::Match, &left, &Pattern(right), args);
+    assert_failed_inner(AssertKind::Match, &left, &Pattern(right), args)
 }
 
 /// Non-generic version of the above functions, to avoid code bloat.

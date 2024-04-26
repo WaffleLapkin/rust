@@ -57,7 +57,7 @@ extern "Rust" {
 #[cfg(not(test))]
 #[rustc_std_internal_symbol]
 extern "C" fn __rust_drop_panic() -> ! {
-    rtabort!("Rust panics must be rethrown");
+    rtabort!("Rust panics must be rethrown")
 }
 
 /// This function is called by the panic runtime if it catches an exception
@@ -65,7 +65,7 @@ extern "C" fn __rust_drop_panic() -> ! {
 #[cfg(not(test))]
 #[rustc_std_internal_symbol]
 extern "C" fn __rust_foreign_exception() -> ! {
-    rtabort!("Rust cannot catch foreign exceptions");
+    rtabort!("Rust cannot catch foreign exceptions")
 }
 
 enum Hook {
@@ -476,50 +476,6 @@ pub unsafe fn r#try<R, F: FnOnce() -> R>(f: F) -> Result<R, Box<dyn Any + Send>>
         p: ManuallyDrop<Box<dyn Any + Send>>,
     }
 
-    // We do some sketchy operations with ownership here for the sake of
-    // performance. We can only pass pointers down to `do_call` (can't pass
-    // objects by value), so we do all the ownership tracking here manually
-    // using a union.
-    //
-    // We go through a transition where:
-    //
-    // * First, we set the data field `f` to be the argumentless closure that we're going to call.
-    // * When we make the function call, the `do_call` function below, we take
-    //   ownership of the function pointer. At this point the `data` union is
-    //   entirely uninitialized.
-    // * If the closure successfully returns, we write the return value into the
-    //   data's return slot (field `r`).
-    // * If the closure panics (`do_catch` below), we write the panic payload into field `p`.
-    // * Finally, when we come back out of the `try` intrinsic we're
-    //   in one of two states:
-    //
-    //      1. The closure didn't panic, in which case the return value was
-    //         filled in. We move it out of `data.r` and return it.
-    //      2. The closure panicked, in which case the panic payload was
-    //         filled in. We move it out of `data.p` and return it.
-    //
-    // Once we stack all that together we should have the "most efficient'
-    // method of calling a catch panic whilst juggling ownership.
-    let mut data = Data { f: ManuallyDrop::new(f) };
-
-    let data_ptr = core::ptr::addr_of_mut!(data) as *mut u8;
-    // SAFETY:
-    //
-    // Access to the union's fields: this is `std` and we know that the `r#try`
-    // intrinsic fills in the `r` or `p` union field based on its return value.
-    //
-    // The call to `intrinsics::catch_unwind` is made safe by:
-    // - `do_call`, the first argument, can be called with the initial `data_ptr`.
-    // - `do_catch`, the second argument, can be called with the `data_ptr` as well.
-    // See their safety preconditions for more information
-    unsafe {
-        return if intrinsics::catch_unwind(do_call::<F, R>, data_ptr, do_catch::<F, R>) == 0 {
-            Ok(ManuallyDrop::into_inner(data.r))
-        } else {
-            Err(ManuallyDrop::into_inner(data.p))
-        };
-    }
-
     // We consider unwinding to be rare, so mark this function as cold. However,
     // do not mark it no-inline -- that decision is best to leave to the
     // optimizer (in most cases this function is not inlined even as a normal,
@@ -577,6 +533,51 @@ pub unsafe fn r#try<R, F: FnOnce() -> R>(f: F) -> Result<R, Box<dyn Any + Send>>
             let data = &mut (*data);
             let obj = cleanup(payload);
             data.p = ManuallyDrop::new(obj);
+        }
+    }
+
+
+    // We do some sketchy operations with ownership here for the sake of
+    // performance. We can only pass pointers down to `do_call` (can't pass
+    // objects by value), so we do all the ownership tracking here manually
+    // using a union.
+    //
+    // We go through a transition where:
+    //
+    // * First, we set the data field `f` to be the argumentless closure that we're going to call.
+    // * When we make the function call, the `do_call` function below, we take
+    //   ownership of the function pointer. At this point the `data` union is
+    //   entirely uninitialized.
+    // * If the closure successfully returns, we write the return value into the
+    //   data's return slot (field `r`).
+    // * If the closure panics (`do_catch` below), we write the panic payload into field `p`.
+    // * Finally, when we come back out of the `try` intrinsic we're
+    //   in one of two states:
+    //
+    //      1. The closure didn't panic, in which case the return value was
+    //         filled in. We move it out of `data.r` and return it.
+    //      2. The closure panicked, in which case the panic payload was
+    //         filled in. We move it out of `data.p` and return it.
+    //
+    // Once we stack all that together we should have the "most efficient'
+    // method of calling a catch panic whilst juggling ownership.
+    let mut data = Data { f: ManuallyDrop::new(f) };
+
+    let data_ptr = core::ptr::addr_of_mut!(data) as *mut u8;
+    // SAFETY:
+    //
+    // Access to the union's fields: this is `std` and we know that the `r#try`
+    // intrinsic fills in the `r` or `p` union field based on its return value.
+    //
+    // The call to `intrinsics::catch_unwind` is made safe by:
+    // - `do_call`, the first argument, can be called with the initial `data_ptr`.
+    // - `do_catch`, the second argument, can be called with the `data_ptr` as well.
+    // See their safety preconditions for more information
+    unsafe {
+        if intrinsics::catch_unwind(do_call::<F, R>, data_ptr, do_catch::<F, R>) == 0 {
+            Ok(ManuallyDrop::into_inner(data.r))
+        } else {
+            Err(ManuallyDrop::into_inner(data.p))
         }
     }
 }
@@ -652,7 +653,7 @@ pub fn begin_panic_handler(info: &PanicInfo<'_>) -> ! {
                 loc,
                 info.can_unwind(),
                 info.force_no_backtrace(),
-            );
+            )
         } else {
             rust_panic_with_hook(
                 &mut FormatStringPayload::new(msg),
@@ -660,7 +661,7 @@ pub fn begin_panic_handler(info: &PanicInfo<'_>) -> ! {
                 loc,
                 info.can_unwind(),
                 info.force_no_backtrace(),
-            );
+            )
         }
     })
 }
@@ -681,17 +682,6 @@ pub const fn begin_panic<M: Any + Send>(msg: M) -> ! {
     if cfg!(feature = "panic_immediate_abort") {
         intrinsics::abort()
     }
-
-    let loc = Location::caller();
-    return crate::sys_common::backtrace::__rust_end_short_backtrace(move || {
-        rust_panic_with_hook(
-            &mut Payload::new(msg),
-            None,
-            loc,
-            /* can_unwind */ true,
-            /* force_no_backtrace */ false,
-        )
-    });
 
     struct Payload<A> {
         inner: Option<A>,
@@ -724,6 +714,17 @@ pub const fn begin_panic<M: Any + Send>(msg: M) -> ! {
             }
         }
     }
+
+    let loc = Location::caller();
+    crate::sys_common::backtrace::__rust_end_short_backtrace(move || {
+        rust_panic_with_hook(
+            &mut Payload::new(msg),
+            None,
+            loc,
+            /* can_unwind */ true,
+            /* force_no_backtrace */ false,
+        )
+    })
 }
 
 /// Central point for dispatching panics.

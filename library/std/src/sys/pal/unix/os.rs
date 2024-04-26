@@ -614,21 +614,6 @@ pub fn env_read_lock() -> impl Drop {
 /// Returns a vector of (variable, value) byte-vector pairs for all the
 /// environment variables of the current process.
 pub fn env() -> Env {
-    unsafe {
-        let _guard = env_read_lock();
-        let mut environ = *environ();
-        let mut result = Vec::new();
-        if !environ.is_null() {
-            while !(*environ).is_null() {
-                if let Some(key_value) = parse(CStr::from_ptr(*environ).to_bytes()) {
-                    result.push(key_value);
-                }
-                environ = environ.add(1);
-            }
-        }
-        return Env { iter: result.into_iter() };
-    }
-
     fn parse(input: &[u8]) -> Option<(OsString, OsString)> {
         // Strategy (copied from glibc): Variable name and value are separated
         // by an ASCII equals sign '='. Since a variable name must not be
@@ -644,6 +629,21 @@ pub fn env() -> Env {
                 OsStringExt::from_vec(input[p + 1..].to_vec()),
             )
         })
+    }
+    
+    unsafe {
+        let _guard = env_read_lock();
+        let mut environ = *environ();
+        let mut result = Vec::new();
+        if !environ.is_null() {
+            while !(*environ).is_null() {
+                if let Some(key_value) = parse(CStr::from_ptr(*environ).to_bytes()) {
+                    result.push(key_value);
+                }
+                environ = environ.add(1);
+            }
+        }
+        Env { iter: result.into_iter() }
     }
 }
 
@@ -699,8 +699,6 @@ pub fn temp_dir() -> PathBuf {
 }
 
 pub fn home_dir() -> Option<PathBuf> {
-    return crate::env::var_os("HOME").or_else(|| unsafe { fallback() }).map(PathBuf::from);
-
     #[cfg(any(
         target_os = "android",
         target_os = "ios",
@@ -753,6 +751,8 @@ pub fn home_dir() -> Option<PathBuf> {
             _ => None,
         }
     }
+
+    crate::env::var_os("HOME").or_else(|| unsafe { fallback() }).map(PathBuf::from)
 }
 
 pub fn exit(code: i32) -> ! {

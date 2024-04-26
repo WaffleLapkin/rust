@@ -276,6 +276,7 @@
 #![feature(tbm_target_feature)]
 #![feature(wasm_target_feature)]
 // tidy-alphabetical-end
+#![cfg_attr(not(bootstrap), rustc_never_type_options(diverging_block_default = "unit"))]
 
 // allow using `core::` in intra-doc links
 #[allow(unused_extern_crates)]

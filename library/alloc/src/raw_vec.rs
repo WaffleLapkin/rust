@@ -22,7 +22,7 @@ mod tests;
 #[cfg(not(no_global_oom_handling))]
 #[cfg_attr(not(feature = "panic_immediate_abort"), inline(never))]
 fn capacity_overflow() -> ! {
-    panic!("capacity overflow");
+    panic!("capacity overflow")
 }
 
 enum AllocInit {

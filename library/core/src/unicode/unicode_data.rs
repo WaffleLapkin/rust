@@ -23,7 +23,7 @@ const fn bitset_search<
     let chunk_idx = if chunk_map_idx < chunk_idx_map.len() {
         chunk_idx_map[chunk_map_idx]
     } else {
-        return false;
+        return false
     };
     let idx = bitset_chunk_idx[chunk_idx as usize][chunk_piece] as usize;
     // FIXME: const-hack: Revert to `slice::get` after `const_slice_index`

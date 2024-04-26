@@ -1514,7 +1514,7 @@ impl<S: Borrow<OsStr>> alloc::slice::Join<&OsStr> for [S] {
 
     fn join(slice: &Self, sep: &OsStr) -> OsString {
         let Some((first, suffix)) = slice.split_first() else {
-            return OsString::new();
+            return OsString::new()
         };
         let first_owned = first.borrow().to_owned();
         suffix.iter().fold(first_owned, |mut a, b| {

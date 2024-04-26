@@ -1274,7 +1274,7 @@ pub fn merge_sort<T, CmpF, ElemAllocF, ElemDeallocF, RunAllocF, RunDeallocF>(
                 }
             }
 
-            panic!("Index out of bounds");
+            panic!("Index out of bounds")
         }
     }
 
@@ -1291,7 +1291,7 @@ pub fn merge_sort<T, CmpF, ElemAllocF, ElemDeallocF, RunAllocF, RunDeallocF>(
                 }
             }
 
-            panic!("Index out of bounds");
+            panic!("Index out of bounds")
         }
     }
 

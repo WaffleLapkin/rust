@@ -1173,9 +1173,6 @@ impl File {
     }
 
     pub fn fsync(&self) -> io::Result<()> {
-        cvt_r(|| unsafe { os_fsync(self.as_raw_fd()) })?;
-        return Ok(());
-
         #[cfg(any(
             target_os = "macos",
             target_os = "ios",
@@ -1196,12 +1193,12 @@ impl File {
         unsafe fn os_fsync(fd: c_int) -> c_int {
             libc::fsync(fd)
         }
+
+        cvt_r(|| unsafe { os_fsync(self.as_raw_fd()) })?;
+        Ok(())
     }
 
     pub fn datasync(&self) -> io::Result<()> {
-        cvt_r(|| unsafe { os_datasync(self.as_raw_fd()) })?;
-        return Ok(());
-
         #[cfg(any(
             target_os = "macos",
             target_os = "ios",
@@ -1241,6 +1238,9 @@ impl File {
         unsafe fn os_datasync(fd: c_int) -> c_int {
             libc::fsync(fd)
         }
+
+        cvt_r(|| unsafe { os_datasync(self.as_raw_fd()) })?;
+        Ok(())
     }
 
     pub fn truncate(&self, size: u64) -> io::Result<()> {
@@ -2128,7 +2128,7 @@ mod remove_dir_impl {
                     }
                     // ...unless this was supposed to be the deletion root directory
                     None => Err(err),
-                };
+                }
             }
             result => result?,
         };

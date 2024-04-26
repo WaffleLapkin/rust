@@ -88,6 +88,26 @@ impl IntoInner<FileDesc> for AnonPipe {
 }
 
 pub fn read2(p1: AnonPipe, v1: &mut Vec<u8>, p2: AnonPipe, v2: &mut Vec<u8>) -> io::Result<()> {
+    // Read as much as we can from each pipe, ignoring EWOULDBLOCK or
+    // EAGAIN. If we hit EOF, then this will happen because the underlying
+    // reader will return Ok(0), in which case we'll see `Ok` ourselves. In
+    // this case we flip the other fd back into blocking mode and read
+    // whatever's leftover on that file descriptor.
+    fn read(fd: &FileDesc, dst: &mut Vec<u8>) -> Result<bool, io::Error> {
+        match fd.read_to_end(dst) {
+            Ok(_) => Ok(true),
+            Err(e) => {
+                if e.raw_os_error() == Some(libc::EWOULDBLOCK)
+                    || e.raw_os_error() == Some(libc::EAGAIN)
+                {
+                    Ok(false)
+                } else {
+                    Err(e)
+                }
+            }
+        }
+    }
+
     // Set both pipes into nonblocking mode as we're gonna be reading from both
     // in the `select` loop below, and we wouldn't want one to block the other!
     let p1 = p1.into_inner();
@@ -111,26 +131,6 @@ pub fn read2(p1: AnonPipe, v1: &mut Vec<u8>, p2: AnonPipe, v2: &mut Vec<u8>) -> 
         if fds[1].revents != 0 && read(&p2, v2)? {
             p1.set_nonblocking(false)?;
             return p1.read_to_end(v1).map(drop);
-        }
-    }
-
-    // Read as much as we can from each pipe, ignoring EWOULDBLOCK or
-    // EAGAIN. If we hit EOF, then this will happen because the underlying
-    // reader will return Ok(0), in which case we'll see `Ok` ourselves. In
-    // this case we flip the other fd back into blocking mode and read
-    // whatever's leftover on that file descriptor.
-    fn read(fd: &FileDesc, dst: &mut Vec<u8>) -> Result<bool, io::Error> {
-        match fd.read_to_end(dst) {
-            Ok(_) => Ok(true),
-            Err(e) => {
-                if e.raw_os_error() == Some(libc::EWOULDBLOCK)
-                    || e.raw_os_error() == Some(libc::EAGAIN)
-                {
-                    Ok(false)
-                } else {
-                    Err(e)
-                }
-            }
         }
     }
 }

@@ -1198,7 +1198,7 @@ impl ThreadId {
                 let mut last = COUNTER.load(Relaxed);
                 loop {
                     let Some(id) = last.checked_add(1) else {
-                        exhausted();
+                        exhausted()
                     };
 
                     match COUNTER.compare_exchange_weak(last, id, Relaxed, Relaxed) {

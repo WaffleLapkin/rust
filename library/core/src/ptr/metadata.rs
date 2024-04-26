@@ -205,7 +205,7 @@ impl<Dyn: ?Sized> DynMetadata<Dyn> {
         // SAFETY: DynMetadata always contains a valid vtable pointer
         return unsafe {
             crate::intrinsics::vtable_size(self.vtable_ptr as *const VTable as *const ())
-        };
+        }
     }
 
     /// Returns the alignment of the type associated with this vtable.
@@ -214,7 +214,7 @@ impl<Dyn: ?Sized> DynMetadata<Dyn> {
         // SAFETY: DynMetadata always contains a valid vtable pointer
         return unsafe {
             crate::intrinsics::vtable_align(self.vtable_ptr as *const VTable as *const ())
-        };
+        }
     }
 
     /// Returns the size and alignment together as a `Layout`

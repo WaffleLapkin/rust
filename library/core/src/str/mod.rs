@@ -96,7 +96,7 @@ const fn slice_error_fail(s: &str, begin: usize, end: usize) -> ! {
 
 #[track_caller]
 const fn slice_error_fail_ct(_: &str, _: usize, _: usize) -> ! {
-    panic!("failed to slice string");
+    panic!("failed to slice string")
 }
 
 #[track_caller]
@@ -132,7 +132,7 @@ fn slice_error_fail_rt(s: &str, begin: usize, end: usize) -> ! {
     panic!(
         "byte index {} is not a char boundary; it is inside {:?} (bytes {:?}) of `{}`{}",
         index, ch, char_range, s_trunc, ellipsis
-    );
+    )
 }
 
 #[cfg(not(test))]
