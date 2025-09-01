@@ -926,6 +926,8 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
         call: &'tcx hir::Expr<'tcx>,
         expr: &'tcx hir::Expr<'tcx>,
     ) -> Ty<'tcx> {
+        self.root_ctxt.deferred_tail_call_checks.borrow_mut().push((self.body_id, call));
+
         match &self.ret_coercion {
             Some(ret_coercion) => {
                 let ret_ty = ret_coercion.borrow().expected_ty();

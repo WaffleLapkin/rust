@@ -58,6 +58,9 @@ pub(crate) struct TypeckRootCtxt<'tcx> {
 
     pub(super) deferred_transmute_checks: RefCell<Vec<(Ty<'tcx>, Ty<'tcx>, HirId)>>,
 
+    /// DefId of the caller body/the call expr.
+    pub(super) deferred_tail_call_checks: RefCell<Vec<(LocalDefId, &'tcx hir::Expr<'tcx>)>>,
+
     pub(super) deferred_asm_checks: RefCell<Vec<(&'tcx hir::InlineAsm<'tcx>, HirId)>>,
 
     pub(super) deferred_repeat_expr_checks:

@@ -14,6 +14,7 @@ use std::ops::ControlFlow;
 use rustc_data_structures::fx::{FxHashSet, FxIndexMap};
 use rustc_data_structures::unord::ExtendUnord;
 use rustc_errors::{E0720, ErrorGuaranteed};
+use rustc_hir::def::DefKind;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::{self, InferKind, Visitor};
 use rustc_hir::{self as hir, AmbigArg, HirId, find_attr};
@@ -29,6 +30,7 @@ use rustc_span::Span;
 use rustc_trait_selection::error_reporting::infer::need_type_info::TypeAnnotationNeeded;
 use rustc_trait_selection::opaque_types::opaque_type_has_defining_use_args;
 use rustc_trait_selection::solve;
+use rustc_trait_selection::traits::NormalizeExt;
 use tracing::{debug, instrument};
 
 use crate::FnCtxt;
@@ -76,6 +78,7 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
         wbcx.visit_user_provided_sigs();
         wbcx.visit_coroutine_interior();
         wbcx.visit_transmutes();
+        wbcx.visit_tail_calls();
         wbcx.visit_offset_of_container_types();
         wbcx.visit_potentially_region_dependent_goals();
 
@@ -542,6 +545,38 @@ impl<'cx, 'tcx> WritebackCx<'cx, 'tcx> {
             let to = self.resolve(to, &span);
             self.typeck_results.transmutes_to_check.push((from, to, hir_id));
         }
+    }
+
+    fn visit_tail_calls(&mut self) {
+        let tcx = self.tcx();
+        for &(caller_did, expr) in self.fcx.deferred_tail_call_checks.borrow().iter() {
+            // FIXME(explicit_tail_cals): is this a good span?
+            let span = tcx.def_span(caller_did);
+
+            let caller_is_closure = matches!(tcx.def_kind(caller_did), DefKind::Closure);
+            if caller_is_closure {
+                todo!();
+            }
+
+            let hir::ExprKind::Call(callee, _args) = expr.kind else { todo!() };
+
+            let callee_ty = self.resolve(self.typeck_results.expr_ty(callee), &span);
+
+            let callee_fn_sig = match callee_ty.kind() {
+                ty::FnDef(did, args) => tcx.fn_sig(did).instantiate(tcx, args),
+&                ty::FnPtr(sig, header) => sig.with(header),
+                _ => todo!(),
+            };
+
+            let tcxat = tcx.at(span);
+
+            let infcx = self.fcx.infcx.at(&ObligationCause::dummy(), self.fcx.param_env);
+            let callee_fn_sig = solve::deeply_normalize(infcx, callee_fn_sig).unwrap();
+
+            let caller_fn_sig = self.fcx.body_fn_sig().unwrap();
+            let caller_fn_sig = solve::deeply_normalize(infcx, caller_fn_sig).unwrap();
+        }
+        // self.resolve(value, span)
     }
 
     fn visit_opaque_types_next(&mut self) {
