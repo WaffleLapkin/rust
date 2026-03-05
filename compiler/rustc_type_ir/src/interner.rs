@@ -211,8 +211,6 @@ pub trait Interner:
     type AdtDef: AdtDef<Self>;
     fn adt_def(self, adt_def_id: Self::AdtId) -> Self::AdtDef;
 
-    fn alias_ty_kind(self, alias: ty::AliasTy<Self>) -> ty::AliasTyKind;
-
     fn alias_term_kind(self, alias: ty::AliasTerm<Self>) -> ty::AliasTermKind;
 
     fn trait_ref_and_own_args_for_alias(
