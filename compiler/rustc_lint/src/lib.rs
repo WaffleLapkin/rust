@@ -642,6 +642,10 @@ fn register_builtins(store: &mut LintStore) {
          see <https://github.com/rust-lang/rust/issues/40107> for more information",
     );
     store.register_removed("wasm_c_abi", "the wasm C ABI has been fixed");
+    store.register_removed(
+        "soft_unstable",
+        "soft instability is not useful, see <https://github.com/rust-lang/rust/issues/153572>",
+    );
 }
 
 fn register_internals(store: &mut LintStore) {
