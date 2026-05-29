@@ -57,6 +57,8 @@ impl GatedSpans {
     }
 }
 
+/// Collection of non-ascii symbols, for the purposes of `NonAsciiIdents` lint pass
+/// (non_ascii_idents, uncommon_codepoints, confusable_idents, mixed_script_confusables).
 #[derive(Default)]
 pub struct SymbolGallery {
     /// All symbols occurred and their first occurrence span.
@@ -66,7 +68,12 @@ pub struct SymbolGallery {
 impl SymbolGallery {
     /// Insert a symbol and its span into symbol gallery.
     /// If the symbol has occurred before, ignore the new occurrence.
-    pub fn insert(&self, symbol: Symbol, span: Span) {
+    pub fn insert(&self, str: &str, symbol: Symbol, span: Span) {
+        if str.is_ascii() {
+            return;
+        }
+
+        // This makes `NonAsciiIdents` non-determenistic in parallel frontend mode :)
         self.symbols.lock().entry(symbol).or_insert(span);
     }
 }

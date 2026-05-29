@@ -662,7 +662,7 @@ fn metavar_expr_concat<'tx>(
             reason: InvalidIdentReason::new(symbol),
         }));
     }
-    tscx.psess.symbol_gallery.insert(symbol, concatenated_span);
+    tscx.psess.symbol_gallery.insert(&concatenated, symbol, concatenated_span);
 
     // The current implementation marks the span as coming from the macro regardless of
     // contexts of the concatenated identifiers but this behavior may change in the

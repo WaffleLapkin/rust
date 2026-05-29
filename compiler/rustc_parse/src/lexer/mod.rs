@@ -231,9 +231,10 @@ impl<'psess, 'src> Lexer<'psess, 'src> {
                 }
                 rustc_lexer::TokenKind::Ident => self.ident(start),
                 rustc_lexer::TokenKind::RawIdent => {
-                    let sym = nfc_normalize(self.str_from(start + BytePos(2)));
+                    let string = self.str_from(start + BytePos(2));
+                    let sym = nfc_normalize(string);
                     let span = self.mk_sp(start, self.pos);
-                    self.psess.symbol_gallery.insert(sym, span);
+                    self.psess.symbol_gallery.insert(string, sym, span);
                     if !sym.can_be_raw() {
                         self.dcx().emit_err(errors::CannotBeRawIdent { span, ident: sym });
                     }
@@ -486,9 +487,10 @@ impl<'psess, 'src> Lexer<'psess, 'src> {
     }
 
     fn ident(&self, start: BytePos) -> TokenKind {
-        let sym = nfc_normalize(self.str_from(start));
+        let string = self.str_from(start);
+        let sym = nfc_normalize(string);
         let span = self.mk_sp(start, self.pos);
-        self.psess.symbol_gallery.insert(sym, span);
+        self.psess.symbol_gallery.insert(string, sym, span);
         token::Ident(sym, IdentIsRaw::No)
     }
 

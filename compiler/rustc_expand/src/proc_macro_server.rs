@@ -363,7 +363,7 @@ impl ToInternal<SmallVec<[tokenstream::TokenTree; 2]>>
                 )]
             }
             TokenTree::Ident(self::Ident { sym, is_raw, span }) => {
-                rustc.psess().symbol_gallery.insert(sym, span);
+                rustc.psess().symbol_gallery.insert(sym.as_str(), sym, span);
                 smallvec![tokenstream::TokenTree::token_alone(Ident(sym, is_raw.into()), span)]
             }
             TokenTree::Literal(self::Literal {
