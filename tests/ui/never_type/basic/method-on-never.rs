@@ -35,11 +35,13 @@ impl Adhoc {
     }
 }
 
-fn temp<T>() -> Result<T, ()> { todo!() }
+fn temp<T>() -> Result<T, ()> {
+    todo!()
+}
 
 fn main() -> Result<(), ()> {
     let x = loop {};
-    x.method();
+    () = x.method();
     //~^ WARN [method_call_on_diverging_infer_var]
     //~| WARN previously accepted
 

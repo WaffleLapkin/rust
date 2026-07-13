@@ -508,14 +508,29 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
                     .iter()
                     .any(|&candidate_id| self.sub_unification_table_root_var(candidate_id) == ty_id)
             {
-                self.tcx.emit_node_span_lint(
-                    METHOD_CALL_ON_DIVERGING_INFER_VAR,
-                    scope_expr_id,
-                    span,
-                    MethodCallOnDivergingInferenceVariable,
-                );
                 let root_ty = Ty::new_var(self.tcx, ty_id);
                 self.demand_eqtype(span, root_ty, self.tcx.types.never);
+
+                if let Some(item_name) = method_name
+                    && let Ok(res) = self.probe_for_name(
+                        mode,
+                        item_name,
+                        return_type,
+                        is_suggestion,
+                        self_ty,
+                        scope_expr_id,
+                        scope,
+                    )
+                    && let sig = self.tcx.normalize_erasing_regions(
+                        self.typing_env(self.param_env),
+                        self.tcx.fn_sig(res.item.def_id).instantiate_identity(),
+                    )
+                    && let Some(output) = sig.output().no_bound_vars()
+                {
+                    dbg!(self.tcx.sess.source_map().span_to_snippet(span), output);
+                }
+
+                // self.probe_op(span, mode, method_name, return_type, is_suggestion, self_ty, scope_expr_id, scope, |probe_cx| probe_cx.probe_op(span, mode, method_name, return_type, is_suggestion, self_ty, scope_expr_id, scope, op));
             } else {
                 let guar = match *ty.kind() {
                     _ if let Some(guar) = self.tainted_by_errors() => guar,
