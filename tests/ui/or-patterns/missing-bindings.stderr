@@ -329,7 +329,7 @@ error[E0004]: non-exhaustive patterns: `None` not covered
   --> $DIR/missing-bindings.rs:21:11
    |
 LL |     match Some(alpha) {
-   |           ^^^^^^^^^^^ pattern `None` not covered
+   |           ^^^^^^^^^^^
    |
 note: `Option<foo>` defined here
   --> $SRC_DIR/core/src/option.rs:LL:COL

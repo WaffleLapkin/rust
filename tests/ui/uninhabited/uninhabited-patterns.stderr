@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `Ok(_)` not covered
   --> $DIR/uninhabited-patterns.rs:34:11
    |
 LL |     match x {
-   |           ^ pattern `Ok(_)` not covered
+   |           ^
    |
 note: `Result<Box<NotSoSecretlyEmpty>, &[Result<!, !>]>` defined here
   --> $SRC_DIR/core/src/result.rs:LL:COL

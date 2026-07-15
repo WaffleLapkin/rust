@@ -35,7 +35,6 @@ enum E {
 fn by_val(e: E) {
     let e1 = e.clone();
     match e1 { //~ ERROR non-exhaustive patterns: `E::B` and `E::C` not covered
-        //~^ NOTE patterns `E::B` and `E::C` not covered
         //~| NOTE the matched value is of type `E`
         E::A => {}
     }
@@ -50,8 +49,7 @@ fn by_val(e: E) {
 
 fn by_ref_once(e: &E) {
     match e {
-    //~^ ERROR non-exhaustive patterns
-    //~| NOTE patterns `&E::B` and `&E::C` not covered
+    //~^ ERROR non-exhaustive patterns: `&E::B` and `&E::C` not covered
     //~| NOTE the matched value is of type `&E`
         E::A => {}
     }
@@ -66,8 +64,7 @@ fn by_ref_once(e: &E) {
 
 fn by_ref_thrice(e: & &mut &E) {
     match e {
-    //~^ ERROR non-exhaustive patterns
-    //~| NOTE patterns `&&mut &E::B` and `&&mut &E::C` not covered
+    //~^ ERROR non-exhaustive patterns: `&&mut &E::B` and `&&mut &E::C` not covered
     //~| NOTE the matched value is of type `&&mut &E`
         E::A => {}
     }
@@ -92,8 +89,7 @@ enum Opt {
 
 fn ref_pat(e: Opt) {
     match e {
-        //~^ ERROR non-exhaustive patterns
-        //~| NOTE pattern `Opt::None` not covered
+        //~^ ERROR non-exhaustive patterns: `Opt::None` not covered
         //~| NOTE the matched value is of type `Opt`
         Opt::Some(ref _x) => {}
     }

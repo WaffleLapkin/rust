@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `Some(_)` not covered
   --> $DIR/pf-match-exhaustiveness.rs:4:5
    |
 LL |     Some(1).match {
-   |     ^^^^^^^ pattern `Some(_)` not covered
+   |     ^^^^^^^
    |
 note: `Option<i32>` defined here
   --> $SRC_DIR/core/src/option.rs:LL:COL

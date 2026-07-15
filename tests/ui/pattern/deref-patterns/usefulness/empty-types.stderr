@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `deref!(Some(_))` not covered
   --> $DIR/empty-types.rs:20:11
    |
 LL |     match box_opt_void {
-   |           ^^^^^^^^^^^^ pattern `deref!(Some(_))` not covered
+   |           ^^^^^^^^^^^^
    |
 note: `Box<Option<Void>>` defined here
   --> $SRC_DIR/alloc/src/boxed.rs:LL:COL
@@ -18,7 +18,7 @@ error[E0004]: non-exhaustive patterns: `Some(_)` not covered
   --> $DIR/empty-types.rs:34:11
    |
 LL |     match *box_opt_void {
-   |           ^^^^^^^^^^^^^ pattern `Some(_)` not covered
+   |           ^^^^^^^^^^^^^
    |
 note: `Option<Void>` defined here
   --> $SRC_DIR/core/src/option.rs:LL:COL

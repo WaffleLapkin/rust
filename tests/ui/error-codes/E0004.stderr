@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `Terminator::HastaLaVistaBaby` not covere
   --> $DIR/E0004.rs:9:11
    |
 LL |     match x {
-   |           ^ pattern `Terminator::HastaLaVistaBaby` not covered
+   |           ^
    |
 note: `Terminator` defined here
   --> $DIR/E0004.rs:1:6

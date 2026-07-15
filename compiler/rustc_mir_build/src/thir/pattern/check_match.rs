@@ -1284,14 +1284,6 @@ fn report_non_exhaustive_match<'p, 'tcx>(
         E0004,
         "non-exhaustive patterns: {joined_patterns} not covered"
     );
-    err.span_label(
-        sp,
-        format!(
-            "pattern{} {} not covered",
-            rustc_errors::pluralize!(witnesses.len()),
-            joined_patterns
-        ),
-    );
 
     // Point at the definition of non-covered `enum` variants.
     if let Some(AdtDefinedHere { adt_def_span, ty, variants }) =

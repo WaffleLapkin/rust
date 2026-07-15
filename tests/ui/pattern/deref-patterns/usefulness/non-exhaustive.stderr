@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `deref!(true)` not covered
   --> $DIR/non-exhaustive.rs:6:11
    |
 LL |     match Box::new(false) {
-   |           ^^^^^^^^^^^^^^^ pattern `deref!(true)` not covered
+   |           ^^^^^^^^^^^^^^^
    |
 note: `Box<bool>` defined here
   --> $SRC_DIR/alloc/src/boxed.rs:LL:COL
@@ -17,7 +17,7 @@ error[E0004]: non-exhaustive patterns: `deref!(deref!(false))` not covered
   --> $DIR/non-exhaustive.rs:11:11
    |
 LL |     match Box::new(Box::new(false)) {
-   |           ^^^^^^^^^^^^^^^^^^^^^^^^^ pattern `deref!(deref!(false))` not covered
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `Box<Box<bool>>` defined here
   --> $SRC_DIR/alloc/src/boxed.rs:LL:COL
@@ -32,7 +32,7 @@ error[E0004]: non-exhaustive patterns: `deref!((true, deref!(true)))` and `deref
   --> $DIR/non-exhaustive.rs:16:11
    |
 LL |     match Box::new((true, Box::new(false))) {
-   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ patterns `deref!((true, deref!(true)))` and `deref!((false, deref!(false)))` not covered
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `Box<(bool, Box<bool>)>` defined here
   --> $SRC_DIR/alloc/src/boxed.rs:LL:COL
@@ -47,7 +47,7 @@ error[E0004]: non-exhaustive patterns: `deref!((deref!(T::C), _))` not covered
   --> $DIR/non-exhaustive.rs:23:11
    |
 LL |     match Box::new((Box::new(T::A), Box::new(T::A))) {
-   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ pattern `deref!((deref!(T::C), _))` not covered
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `Box<(Box<T>, Box<T>)>` defined here
   --> $SRC_DIR/alloc/src/boxed.rs:LL:COL

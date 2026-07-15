@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `Foo::A(false)`, `Foo::B(false)` and `Foo
   --> $DIR/issue-56379.rs:8:11
    |
 LL |     match Foo::A(true) {
-   |           ^^^^^^^^^^^^ patterns `Foo::A(false)`, `Foo::B(false)` and `Foo::C(false)` not covered
+   |           ^^^^^^^^^^^^
    |
 note: `Foo` defined here
   --> $DIR/issue-56379.rs:1:6

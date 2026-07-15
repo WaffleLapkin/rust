@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `(true, false)` not covered
   --> $DIR/match-arm-statics-2.rs:17:11
    |
 LL |     match (true, false) {
-   |           ^^^^^^^^^^^^^ pattern `(true, false)` not covered
+   |           ^^^^^^^^^^^^^
 LL |
 LL |         TRUE_TRUE => (),
    |         --------- this pattern doesn't introduce a new catch-all binding, but rather pattern matches against the value of constant `TRUE_TRUE`
@@ -27,7 +27,7 @@ error[E0004]: non-exhaustive patterns: `Some(Some(Direction::West))` not covered
   --> $DIR/match-arm-statics-2.rs:29:11
    |
 LL |     match Some(Some(North)) {
-   |           ^^^^^^^^^^^^^^^^^ pattern `Some(Some(Direction::West))` not covered
+   |           ^^^^^^^^^^^^^^^^^
    |
 note: `Option<Option<Direction>>` defined here
   --> $SRC_DIR/core/src/option.rs:LL:COL
@@ -47,7 +47,7 @@ error[E0004]: non-exhaustive patterns: `Foo { bar: Some(Direction::North), baz: 
   --> $DIR/match-arm-statics-2.rs:48:11
    |
 LL |     match (Foo { bar: Some(North), baz: NewBool(true) }) {
-   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ pattern `Foo { bar: Some(Direction::North), baz: NewBool(true) }` not covered
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `Foo` defined here
   --> $DIR/match-arm-statics-2.rs:40:8

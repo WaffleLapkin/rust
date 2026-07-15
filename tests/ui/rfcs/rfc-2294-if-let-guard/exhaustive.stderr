@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `None` not covered
   --> $DIR/exhaustive.rs:4:11
    |
 LL |     match x {
-   |           ^ pattern `None` not covered
+   |           ^
    |
 note: `Option<u32>` defined here
   --> $SRC_DIR/core/src/option.rs:LL:COL
@@ -21,7 +21,7 @@ error[E0004]: non-exhaustive patterns: `()` not covered
   --> $DIR/exhaustive.rs:13:11
    |
 LL |     match x {
-   |           ^ pattern `()` not covered
+   |           ^
    |
    = note: the matched value is of type `()`
    = note: match arms with guards don't count towards exhaustivity

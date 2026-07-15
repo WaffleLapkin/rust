@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `&[]` and `&[_, _, ..]` not covered
   --> $DIR/incomplete-slice.rs:9:11
    |
 LL |     match &[][..] {
-   |           ^^^^^^^ patterns `&[]` and `&[_, _, ..]` not covered
+   |           ^^^^^^^
 LL |
 LL |         E_SL => {}
    |         ---- this pattern doesn't introduce a new catch-all binding, but rather pattern matches against the value of constant `E_SL`

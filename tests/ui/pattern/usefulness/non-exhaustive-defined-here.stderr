@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `E::B` and `E::C` not covered
   --> $DIR/non-exhaustive-defined-here.rs:37:11
    |
 LL |     match e1 {
-   |           ^^ patterns `E::B` and `E::C` not covered
+   |           ^^
    |
 note: `E` defined here
   --> $DIR/non-exhaustive-defined-here.rs:8:6
@@ -23,7 +23,7 @@ LL +         E::B | E::C => todo!()
    |
 
 error[E0005]: refutable pattern in local binding
-  --> $DIR/non-exhaustive-defined-here.rs:43:9
+  --> $DIR/non-exhaustive-defined-here.rs:42:9
    |
 LL |     let E::A = e;
    |         ^^^^ patterns `E::B` and `E::C` not covered
@@ -48,10 +48,10 @@ LL |     if let E::A = e { todo!() };
    |     ++              +++++++++++
 
 error[E0004]: non-exhaustive patterns: `&E::B` and `&E::C` not covered
-  --> $DIR/non-exhaustive-defined-here.rs:52:11
+  --> $DIR/non-exhaustive-defined-here.rs:51:11
    |
 LL |     match e {
-   |           ^ patterns `&E::B` and `&E::C` not covered
+   |           ^
    |
 note: `E` defined here
   --> $DIR/non-exhaustive-defined-here.rs:8:6
@@ -72,7 +72,7 @@ LL +         &E::B | &E::C => todo!()
    |
 
 error[E0005]: refutable pattern in local binding
-  --> $DIR/non-exhaustive-defined-here.rs:59:9
+  --> $DIR/non-exhaustive-defined-here.rs:57:9
    |
 LL |     let E::A = e;
    |         ^^^^ patterns `&E::B` and `&E::C` not covered
@@ -97,10 +97,10 @@ LL |     if let E::A = e { todo!() };
    |     ++              +++++++++++
 
 error[E0004]: non-exhaustive patterns: `&&mut &E::B` and `&&mut &E::C` not covered
-  --> $DIR/non-exhaustive-defined-here.rs:68:11
+  --> $DIR/non-exhaustive-defined-here.rs:66:11
    |
 LL |     match e {
-   |           ^ patterns `&&mut &E::B` and `&&mut &E::C` not covered
+   |           ^
    |
 note: `E` defined here
   --> $DIR/non-exhaustive-defined-here.rs:8:6
@@ -121,7 +121,7 @@ LL +         &&mut &E::B | &&mut &E::C => todo!()
    |
 
 error[E0005]: refutable pattern in local binding
-  --> $DIR/non-exhaustive-defined-here.rs:75:9
+  --> $DIR/non-exhaustive-defined-here.rs:72:9
    |
 LL |     let E::A = e;
    |         ^^^^ patterns `&&mut &E::B` and `&&mut &E::C` not covered
@@ -146,13 +146,13 @@ LL |     if let E::A = e { todo!() };
    |     ++              +++++++++++
 
 error[E0004]: non-exhaustive patterns: `Opt::None` not covered
-  --> $DIR/non-exhaustive-defined-here.rs:94:11
+  --> $DIR/non-exhaustive-defined-here.rs:91:11
    |
 LL |     match e {
-   |           ^ pattern `Opt::None` not covered
+   |           ^
    |
 note: `Opt` defined here
-  --> $DIR/non-exhaustive-defined-here.rs:83:6
+  --> $DIR/non-exhaustive-defined-here.rs:80:6
    |
 LL | enum Opt {
    |      ^^^
@@ -167,7 +167,7 @@ LL +         Opt::None => todo!()
    |
 
 error[E0005]: refutable pattern in local binding
-  --> $DIR/non-exhaustive-defined-here.rs:101:9
+  --> $DIR/non-exhaustive-defined-here.rs:97:9
    |
 LL |     let Opt::Some(ref _x) = e;
    |         ^^^^^^^^^^^^^^^^^ pattern `Opt::None` not covered
@@ -175,7 +175,7 @@ LL |     let Opt::Some(ref _x) = e;
    = note: `let` bindings require an "irrefutable pattern", like a `struct` or an `enum` with only one variant
    = note: for more information, visit https://doc.rust-lang.org/book/ch19-02-refutability.html
 note: `Opt` defined here
-  --> $DIR/non-exhaustive-defined-here.rs:83:6
+  --> $DIR/non-exhaustive-defined-here.rs:80:6
    |
 LL | enum Opt {
    |      ^^^

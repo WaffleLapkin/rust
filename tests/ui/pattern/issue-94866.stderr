@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `Enum::B` not covered
   --> $DIR/issue-94866.rs:10:11
    |
 LL |     match Enum::A {
-   |           ^^^^^^^ pattern `Enum::B` not covered
+   |           ^^^^^^^
    |
 note: `Enum` defined here
   --> $DIR/issue-94866.rs:7:6

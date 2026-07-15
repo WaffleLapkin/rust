@@ -21,7 +21,7 @@ error[E0004]: non-exhaustive patterns: `_` not covered
   --> $DIR/enum.rs:16:11
    |
 LL |     match enum_unit {
-   |           ^^^^^^^^^ pattern `_` not covered
+   |           ^^^^^^^^^
    |
 note: `NonExhaustiveEnum` defined here
   --> $DIR/auxiliary/enums.rs:4:1
@@ -40,7 +40,7 @@ error[E0004]: non-exhaustive patterns: `_` not covered
   --> $DIR/enum.rs:23:11
    |
 LL |     match enum_unit {};
-   |           ^^^^^^^^^ pattern `_` not covered
+   |           ^^^^^^^^^
    |
 note: `NonExhaustiveEnum` defined here
   --> $DIR/auxiliary/enums.rs:4:1

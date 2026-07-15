@@ -14,7 +14,7 @@ error[E0004]: non-exhaustive patterns: `Enum::Map2(_)` not covered
   --> $DIR/missing-ctor-with-ill-formed-inner-ty-issue-148192.rs:8:11
    |
 LL |     match e {
-   |           ^ pattern `Enum::Map2(_)` not covered
+   |           ^
    |
 note: `Enum` defined here
   --> $DIR/missing-ctor-with-ill-formed-inner-ty-issue-148192.rs:14:6

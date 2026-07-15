@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `UnstableEnum::Unstable` not covered
   --> $DIR/unstable-gated-patterns.rs:10:11
    |
 LL |     match UnstableEnum::Stable {
-   |           ^^^^^^^^^^^^^^^^^^^^ pattern `UnstableEnum::Unstable` not covered
+   |           ^^^^^^^^^^^^^^^^^^^^
    |
 note: `UnstableEnum` defined here
   --> $DIR/auxiliary/unstable.rs:5:1

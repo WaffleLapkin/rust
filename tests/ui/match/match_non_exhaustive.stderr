@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `L::B` not covered
   --> $DIR/match_non_exhaustive.rs:23:11
    |
 LL |     match l { L::A => () };
-   |           ^ pattern `L::B` not covered
+   |           ^
    |
 note: `L` defined here
   --> $DIR/match_non_exhaustive.rs:10:6
@@ -38,7 +38,7 @@ error[E0004]: non-exhaustive patterns: `_` not covered
   --> $DIR/match_non_exhaustive.rs:30:11
    |
 LL |     match e2 { E2::A => (), E2::B => () };
-   |           ^^ pattern `_` not covered
+   |           ^^
    |
 note: `E2` defined here
   --> $DIR/auxiliary/match_non_exhaustive_lib.rs:5:1

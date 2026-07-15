@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `usize::MAX..` not covered
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:8:11
    |
 LL |     match 0 {
-   |           ^ pattern `usize::MAX..` not covered
+   |           ^
    |
    = note: the matched value is of type `usize`
    = note: `usize::MAX` is not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -16,7 +16,7 @@ error[E0004]: non-exhaustive patterns: `(usize::MAX.., _)` not covered
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:14:11
    |
 LL |     match (0usize, 0usize) {
-   |           ^^^^^^^^^^^^^^^^ pattern `(usize::MAX.., _)` not covered
+   |           ^^^^^^^^^^^^^^^^
    |
    = note: the matched value is of type `(usize, usize)`
    = note: `usize::MAX` is not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -30,7 +30,7 @@ error[E0004]: non-exhaustive patterns: `(..isize::MIN, _)` and `(isize::MAX.., _
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:20:11
    |
 LL |     match (0isize, 0usize) {
-   |           ^^^^^^^^^^^^^^^^ patterns `(..isize::MIN, _)` and `(isize::MAX.., _)` not covered
+   |           ^^^^^^^^^^^^^^^^
    |
    = note: the matched value is of type `(isize, usize)`
    = note: `isize::MIN` and `isize::MAX` are not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -44,7 +44,7 @@ error[E0004]: non-exhaustive patterns: `Some(_)` not covered
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:27:11
    |
 LL |     match Some(1usize) {
-   |           ^^^^^^^^^^^^ pattern `Some(_)` not covered
+   |           ^^^^^^^^^^^^
    |
 note: `Option<usize>` defined here
   --> $SRC_DIR/core/src/option.rs:LL:COL
@@ -62,7 +62,7 @@ error[E0004]: non-exhaustive patterns: `Some(usize::MAX..)` not covered
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:32:11
    |
 LL |     match Some(4) {
-   |           ^^^^^^^ pattern `Some(usize::MAX..)` not covered
+   |           ^^^^^^^
    |
 note: `Option<usize>` defined here
   --> $SRC_DIR/core/src/option.rs:LL:COL
@@ -81,7 +81,7 @@ error[E0004]: non-exhaustive patterns: `Some(Some(Some(usize::MAX..)))` not cove
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:39:11
    |
 LL |     match Some(Some(Some(0))) {
-   |           ^^^^^^^^^^^^^^^^^^^ pattern `Some(Some(Some(usize::MAX..)))` not covered
+   |           ^^^^^^^^^^^^^^^^^^^
    |
 note: `Option<Option<Option<usize>>>` defined here
   --> $SRC_DIR/core/src/option.rs:LL:COL
@@ -104,7 +104,7 @@ error[E0004]: non-exhaustive patterns: `A { a: usize::MAX.. }` not covered
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:48:11
    |
 LL |     match (A { a: 0usize }) {
-   |           ^^^^^^^^^^^^^^^^^ pattern `A { a: usize::MAX.. }` not covered
+   |           ^^^^^^^^^^^^^^^^^
    |
 note: `A<usize>` defined here
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:1:8
@@ -123,7 +123,7 @@ error[E0004]: non-exhaustive patterns: `B(..isize::MIN, _)` and `B(isize::MAX..,
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:54:11
    |
 LL |     match B(0isize, 0usize) {
-   |           ^^^^^^^^^^^^^^^^^ patterns `B(..isize::MIN, _)` and `B(isize::MAX.., _)` not covered
+   |           ^^^^^^^^^^^^^^^^^
    |
 note: `B<isize, usize>` defined here
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:5:8
@@ -142,7 +142,7 @@ error[E0004]: non-exhaustive patterns: `B(_, usize::MAX..)` not covered
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:62:11
    |
 LL |     match B(0isize, 0usize) {
-   |           ^^^^^^^^^^^^^^^^^ pattern `B(_, usize::MAX..)` not covered
+   |           ^^^^^^^^^^^^^^^^^
    |
 note: `B<isize, usize>` defined here
   --> $DIR/issue-85222-types-containing-non-exhaustive-types.rs:5:8

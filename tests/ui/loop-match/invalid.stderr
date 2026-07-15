@@ -102,7 +102,7 @@ error[E0004]: non-exhaustive patterns: `State::B` and `State::C` not covered
   --> $DIR/invalid.rs:187:19
    |
 LL |             match state {
-   |                   ^^^^^ patterns `State::B` and `State::C` not covered
+   |                   ^^^^^
    |
 note: `State` defined here
   --> $DIR/invalid.rs:7:6

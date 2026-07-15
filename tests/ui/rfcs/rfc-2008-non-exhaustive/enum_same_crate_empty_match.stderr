@@ -18,7 +18,7 @@ error[E0004]: non-exhaustive patterns: `NonExhaustiveEnum::Unit`, `NonExhaustive
   --> $DIR/enum_same_crate_empty_match.rs:35:11
    |
 LL |     match NonExhaustiveEnum::Unit {}
-   |           ^^^^^^^^^^^^^^^^^^^^^^^ patterns `NonExhaustiveEnum::Unit`, `NonExhaustiveEnum::Tuple(_)` and `NonExhaustiveEnum::Struct { .. }` not covered
+   |           ^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `NonExhaustiveEnum` defined here
   --> $DIR/enum_same_crate_empty_match.rs:6:10
@@ -45,7 +45,7 @@ error[E0004]: non-exhaustive patterns: `NormalEnum::Unit`, `NormalEnum::Tuple(_)
   --> $DIR/enum_same_crate_empty_match.rs:37:11
    |
 LL |     match NormalEnum::Unit {}
-   |           ^^^^^^^^^^^^^^^^ patterns `NormalEnum::Unit`, `NormalEnum::Tuple(_)` and `NormalEnum::Struct { .. }` not covered
+   |           ^^^^^^^^^^^^^^^^
    |
 note: `NormalEnum` defined here
   --> $DIR/enum_same_crate_empty_match.rs:15:10

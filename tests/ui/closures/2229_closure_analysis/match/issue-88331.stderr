@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `Opcode(0_u8)` and `Opcode(2_u8..=u8::MAX
   --> $DIR/issue-88331.rs:11:20
    |
 LL |     move |i| match msg_type {
-   |                    ^^^^^^^^ patterns `Opcode(0_u8)` and `Opcode(2_u8..=u8::MAX)` not covered
+   |                    ^^^^^^^^
    |
 note: `Opcode` defined here
   --> $DIR/issue-88331.rs:4:12
@@ -20,7 +20,7 @@ error[E0004]: non-exhaustive patterns: `Opcode2(Opcode(0_u8))` and `Opcode2(Opco
   --> $DIR/issue-88331.rs:27:20
    |
 LL |     move |i| match msg_type {
-   |                    ^^^^^^^^ patterns `Opcode2(Opcode(0_u8))` and `Opcode2(Opcode(2_u8..=u8::MAX))` not covered
+   |                    ^^^^^^^^
    |
 note: `Opcode2` defined here
   --> $DIR/issue-88331.rs:18:12

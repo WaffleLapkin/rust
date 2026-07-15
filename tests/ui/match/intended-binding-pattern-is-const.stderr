@@ -2,14 +2,14 @@ error[E0004]: non-exhaustive patterns: `i32::MIN..=3_i32` and `5_i32..=i32::MAX`
   --> $DIR/intended-binding-pattern-is-const.rs:2:11
    |
 LL |     match 1 {
-   |           ^ patterns `i32::MIN..=3_i32` and `5_i32..=i32::MAX` not covered
-...
+   |           ^
+LL |
 LL |         x => {}
    |         - this pattern doesn't introduce a new catch-all binding, but rather pattern matches against the value of constant `x`
    |
    = note: the matched value is of type `i32`
 note: constant `x` defined here
-  --> $DIR/intended-binding-pattern-is-const.rs:9:5
+  --> $DIR/intended-binding-pattern-is-const.rs:8:5
    |
 LL |     const x: i32 = 4;
    |     ^^^^^^^^^^^^

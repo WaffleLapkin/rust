@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `(&_, _)` not covered
   --> $DIR/issue-105479-str-non-exhaustiveness.rs:4:11
    |
 LL |     match (a, b) {
-   |           ^^^^^^ pattern `(&_, _)` not covered
+   |           ^^^^^^
    |
    = note: the matched value is of type `(&str, &str)`
    = note: `&str` cannot be matched exhaustively, so a wildcard `_` is necessary

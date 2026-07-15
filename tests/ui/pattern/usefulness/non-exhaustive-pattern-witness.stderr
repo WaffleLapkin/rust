@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `Foo { first: false, second: Some([0_usiz
   --> $DIR/non-exhaustive-pattern-witness.rs:7:11
    |
 LL |     match (Foo { first: true, second: None }) {
-   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ patterns `Foo { first: false, second: Some([0_usize, _, _, _]) }` and `Foo { first: false, second: Some([2_usize.., _, _, _]) }` not covered
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `Foo` defined here
   --> $DIR/non-exhaustive-pattern-witness.rs:1:8
@@ -20,7 +20,7 @@ error[E0004]: non-exhaustive patterns: `Color::Red` not covered
   --> $DIR/non-exhaustive-pattern-witness.rs:23:11
    |
 LL |     match Color::Red {
-   |           ^^^^^^^^^^ pattern `Color::Red` not covered
+   |           ^^^^^^^^^^
    |
 note: `Color` defined here
   --> $DIR/non-exhaustive-pattern-witness.rs:16:6
@@ -40,7 +40,7 @@ error[E0004]: non-exhaustive patterns: `Direction::East`, `Direction::South` and
   --> $DIR/non-exhaustive-pattern-witness.rs:38:11
    |
 LL |     match Direction::North {
-   |           ^^^^^^^^^^^^^^^^ patterns `Direction::East`, `Direction::South` and `Direction::West` not covered
+   |           ^^^^^^^^^^^^^^^^
    |
 note: `Direction` defined here
   --> $DIR/non-exhaustive-pattern-witness.rs:30:6
@@ -65,7 +65,7 @@ error[E0004]: non-exhaustive patterns: `ExcessiveEnum::Second`, `ExcessiveEnum::
   --> $DIR/non-exhaustive-pattern-witness.rs:60:11
    |
 LL |     match ExcessiveEnum::First {
-   |           ^^^^^^^^^^^^^^^^^^^^ patterns `ExcessiveEnum::Second`, `ExcessiveEnum::Third`, `ExcessiveEnum::Fourth` and 8 more not covered
+   |           ^^^^^^^^^^^^^^^^^^^^
    |
 note: `ExcessiveEnum` defined here
   --> $DIR/non-exhaustive-pattern-witness.rs:44:6
@@ -94,7 +94,7 @@ error[E0004]: non-exhaustive patterns: `Color::CustomRGBA { a: true, .. }` not c
   --> $DIR/non-exhaustive-pattern-witness.rs:67:11
    |
 LL |     match Color::Red {
-   |           ^^^^^^^^^^ pattern `Color::CustomRGBA { a: true, .. }` not covered
+   |           ^^^^^^^^^^
    |
 note: `Color` defined here
   --> $DIR/non-exhaustive-pattern-witness.rs:16:6
@@ -115,7 +115,7 @@ error[E0004]: non-exhaustive patterns: `[Enum::Second(true), Enum::Second(false)
   --> $DIR/non-exhaustive-pattern-witness.rs:83:11
    |
 LL |     match *x {
-   |           ^^ pattern `[Enum::Second(true), Enum::Second(false)]` not covered
+   |           ^^
    |
    = note: the matched value is of type `[Enum]`
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
@@ -128,7 +128,7 @@ error[E0004]: non-exhaustive patterns: `((), false)` not covered
   --> $DIR/non-exhaustive-pattern-witness.rs:96:11
    |
 LL |     match ((), false) {
-   |           ^^^^^^^^^^^ pattern `((), false)` not covered
+   |           ^^^^^^^^^^^
    |
    = note: the matched value is of type `((), bool)`
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown

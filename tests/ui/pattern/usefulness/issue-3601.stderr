@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `box ElementKind::HTMLImageElement(_)` no
   --> $DIR/issue-3601.rs:30:44
    |
 LL |         box NodeKind::Element(ed) => match ed.kind {
-   |                                            ^^^^^^^ pattern `box ElementKind::HTMLImageElement(_)` not covered
+   |                                            ^^^^^^^
    |
 note: `Box<ElementKind>` defined here
   --> $SRC_DIR/alloc/src/boxed.rs:LL:COL

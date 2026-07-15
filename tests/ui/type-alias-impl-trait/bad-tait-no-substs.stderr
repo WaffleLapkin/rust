@@ -30,7 +30,7 @@ error[E0004]: non-exhaustive patterns: `UninhabitedVariants::Tuple(_)` not cover
   --> $DIR/bad-tait-no-substs.rs:15:11
    |
 LL |     match x {}
-   |           ^ pattern `UninhabitedVariants::Tuple(_)` not covered
+   |           ^
    |
 note: `UninhabitedVariants` defined here
   --> $DIR/bad-tait-no-substs.rs:7:10

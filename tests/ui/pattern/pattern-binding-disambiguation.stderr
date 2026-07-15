@@ -62,7 +62,7 @@ error[E0004]: non-exhaustive patterns: `E::TupleVariant` and `E::BracedVariant {
   --> $DIR/pattern-binding-disambiguation.rs:29:11
    |
 LL |     match UnitVariant {
-   |           ^^^^^^^^^^^ patterns `E::TupleVariant` and `E::BracedVariant {  }` not covered
+   |           ^^^^^^^^^^^
    |
 note: `E` defined here
   --> $DIR/pattern-binding-disambiguation.rs:5:6

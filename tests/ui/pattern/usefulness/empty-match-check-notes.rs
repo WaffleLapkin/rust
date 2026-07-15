@@ -54,7 +54,6 @@ fn main() {
         //~^ ERROR not covered
         //~| NOTE the matched value is of type
         //~| NOTE match arms with guards don't count towards exhaustivity
-        //~| NOTE not covered
         _ if false => {}
     }
 }

@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `Tag(Context::Exif, _)` not covered
   --> $DIR/issue-50900.rs:15:11
    |
 LL |     match Tag::ExifIFDPointer {
-   |           ^^^^^^^^^^^^^^^^^^^ pattern `Tag(Context::Exif, _)` not covered
+   |           ^^^^^^^^^^^^^^^^^^^
    |
 note: `Tag` defined here
   --> $DIR/issue-50900.rs:2:12

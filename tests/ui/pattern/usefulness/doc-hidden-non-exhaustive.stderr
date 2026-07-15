@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `_` not covered
   --> $DIR/doc-hidden-non-exhaustive.rs:15:11
    |
 LL |     match HiddenEnum::A {
-   |           ^^^^^^^^^^^^^ pattern `_` not covered
+   |           ^^^^^^^^^^^^^
    |
 note: `HiddenEnum` defined here
   --> $DIR/auxiliary/hidden.rs:1:1
@@ -20,7 +20,7 @@ error[E0004]: non-exhaustive patterns: `HiddenEnum::B` not covered
   --> $DIR/doc-hidden-non-exhaustive.rs:21:11
    |
 LL |     match HiddenEnum::A {
-   |           ^^^^^^^^^^^^^ pattern `HiddenEnum::B` not covered
+   |           ^^^^^^^^^^^^^
    |
 note: `HiddenEnum` defined here
   --> $DIR/auxiliary/hidden.rs:1:1
@@ -41,7 +41,7 @@ error[E0004]: non-exhaustive patterns: `HiddenEnum::B` and `_` not covered
   --> $DIR/doc-hidden-non-exhaustive.rs:27:11
    |
 LL |     match HiddenEnum::A {
-   |           ^^^^^^^^^^^^^ patterns `HiddenEnum::B` and `_` not covered
+   |           ^^^^^^^^^^^^^
    |
 note: `HiddenEnum` defined here
   --> $DIR/auxiliary/hidden.rs:1:1
@@ -62,7 +62,7 @@ error[E0004]: non-exhaustive patterns: `Some(HiddenEnum::B)` and `Some(_)` not c
   --> $DIR/doc-hidden-non-exhaustive.rs:32:11
    |
 LL |     match None {
-   |           ^^^^ patterns `Some(HiddenEnum::B)` and `Some(_)` not covered
+   |           ^^^^
    |
 note: `Option<HiddenEnum>` defined here
   --> $SRC_DIR/core/src/option.rs:LL:COL
@@ -80,7 +80,7 @@ error[E0004]: non-exhaustive patterns: `InCrate::C` not covered
   --> $DIR/doc-hidden-non-exhaustive.rs:38:11
    |
 LL |     match InCrate::A {
-   |           ^^^^^^^^^^ pattern `InCrate::C` not covered
+   |           ^^^^^^^^^^
    |
 note: `InCrate` defined here
   --> $DIR/doc-hidden-non-exhaustive.rs:7:6

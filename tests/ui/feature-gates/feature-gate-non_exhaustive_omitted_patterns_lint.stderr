@@ -71,7 +71,7 @@ error[E0004]: non-exhaustive patterns: `Foo::C` not covered
   --> $DIR/feature-gate-non_exhaustive_omitted_patterns_lint.rs:18:11
    |
 LL |     match Foo::A {
-   |           ^^^^^^ pattern `Foo::C` not covered
+   |           ^^^^^^
    |
 note: `Foo` defined here
   --> $DIR/feature-gate-non_exhaustive_omitted_patterns_lint.rs:9:10

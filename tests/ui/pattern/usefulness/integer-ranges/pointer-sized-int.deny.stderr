@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `usize::MAX..` not covered
   --> $DIR/pointer-sized-int.rs:12:11
    |
 LL |     match 0usize {
-   |           ^^^^^^ pattern `usize::MAX..` not covered
+   |           ^^^^^^
    |
    = note: the matched value is of type `usize`
    = note: `usize::MAX` is not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -16,7 +16,7 @@ error[E0004]: non-exhaustive patterns: `..isize::MIN` and `isize::MAX..` not cov
   --> $DIR/pointer-sized-int.rs:17:11
    |
 LL |     match 0isize {
-   |           ^^^^^^ patterns `..isize::MIN` and `isize::MAX..` not covered
+   |           ^^^^^^
    |
    = note: the matched value is of type `isize`
    = note: `isize::MIN` and `isize::MAX` are not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -30,7 +30,7 @@ error[E0004]: non-exhaustive patterns: `usize::MAX..` not covered
   --> $DIR/pointer-sized-int.rs:22:8
    |
 LL |     m!(0usize, 0..=usize::MAX);
-   |        ^^^^^^ pattern `usize::MAX..` not covered
+   |        ^^^^^^
    |
    = note: the matched value is of type `usize`
    = note: `usize::MAX` is not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -43,7 +43,7 @@ error[E0004]: non-exhaustive patterns: `usize::MAX..` not covered
   --> $DIR/pointer-sized-int.rs:24:8
    |
 LL |     m!(0usize, 0..5 | 5..=usize::MAX);
-   |        ^^^^^^ pattern `usize::MAX..` not covered
+   |        ^^^^^^
    |
    = note: the matched value is of type `usize`
    = note: `usize::MAX` is not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -56,7 +56,7 @@ error[E0004]: non-exhaustive patterns: `usize::MAX..` not covered
   --> $DIR/pointer-sized-int.rs:26:8
    |
 LL |     m!(0usize, 0..usize::MAX | usize::MAX);
-   |        ^^^^^^ pattern `usize::MAX..` not covered
+   |        ^^^^^^
    |
    = note: the matched value is of type `usize`
    = note: `usize::MAX` is not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -69,7 +69,7 @@ error[E0004]: non-exhaustive patterns: `(usize::MAX.., _)` not covered
   --> $DIR/pointer-sized-int.rs:28:8
    |
 LL |     m!((0usize, true), (0..5, true) | (5..=usize::MAX, true) | (0..=usize::MAX, false));
-   |        ^^^^^^^^^^^^^^ pattern `(usize::MAX.., _)` not covered
+   |        ^^^^^^^^^^^^^^
    |
    = note: the matched value is of type `(usize, bool)`
    = note: `usize::MAX` is not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -82,7 +82,7 @@ error[E0004]: non-exhaustive patterns: `..isize::MIN` and `isize::MAX..` not cov
   --> $DIR/pointer-sized-int.rs:37:8
    |
 LL |     m!(0isize, isize::MIN..=isize::MAX);
-   |        ^^^^^^ patterns `..isize::MIN` and `isize::MAX..` not covered
+   |        ^^^^^^
    |
    = note: the matched value is of type `isize`
    = note: `isize::MIN` and `isize::MAX` are not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -95,7 +95,7 @@ error[E0004]: non-exhaustive patterns: `..isize::MIN` and `isize::MAX..` not cov
   --> $DIR/pointer-sized-int.rs:39:8
    |
 LL |     m!(0isize, isize::MIN..5 | 5..=isize::MAX);
-   |        ^^^^^^ patterns `..isize::MIN` and `isize::MAX..` not covered
+   |        ^^^^^^
    |
    = note: the matched value is of type `isize`
    = note: `isize::MIN` and `isize::MAX` are not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -108,7 +108,7 @@ error[E0004]: non-exhaustive patterns: `..isize::MIN` and `isize::MAX..` not cov
   --> $DIR/pointer-sized-int.rs:41:8
    |
 LL |     m!(0isize, isize::MIN..=-1 | 0 | 1..=isize::MAX);
-   |        ^^^^^^ patterns `..isize::MIN` and `isize::MAX..` not covered
+   |        ^^^^^^
    |
    = note: the matched value is of type `isize`
    = note: `isize::MIN` and `isize::MAX` are not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -121,7 +121,7 @@ error[E0004]: non-exhaustive patterns: `..isize::MIN` and `isize::MAX..` not cov
   --> $DIR/pointer-sized-int.rs:43:8
    |
 LL |     m!(0isize, isize::MIN..isize::MAX | isize::MAX);
-   |        ^^^^^^ patterns `..isize::MIN` and `isize::MAX..` not covered
+   |        ^^^^^^
    |
    = note: the matched value is of type `isize`
    = note: `isize::MIN` and `isize::MAX` are not treated as exhaustive, so half-open ranges are necessary to match exhaustively
@@ -134,7 +134,7 @@ error[E0004]: non-exhaustive patterns: `(..isize::MIN, _)` and `(isize::MAX.., _
   --> $DIR/pointer-sized-int.rs:46:9
    |
 LL |         (0isize, true),
-   |         ^^^^^^^^^^^^^^ patterns `(..isize::MIN, _)` and `(isize::MAX.., _)` not covered
+   |         ^^^^^^^^^^^^^^
    |
    = note: the matched value is of type `(isize, bool)`
    = note: `isize::MIN` and `isize::MAX` are not treated as exhaustive, so half-open ranges are necessary to match exhaustively

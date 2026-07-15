@@ -94,7 +94,7 @@ error[E0004]: non-exhaustive patterns: `NonEmptyEnum1::Foo(_)` not covered
   --> $DIR/empty-match.rs:55:20
    |
 LL |     match_no_arms!(NonEmptyEnum1::Foo(true));
-   |                    ^^^^^^^^^^^^^^^^^^^^^^^^ pattern `NonEmptyEnum1::Foo(_)` not covered
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `NonEmptyEnum1` defined here
   --> $DIR/empty-match.rs:31:10
@@ -110,7 +110,7 @@ error[E0004]: non-exhaustive patterns: `NonEmptyEnum2::Foo(_)` and `NonEmptyEnum
   --> $DIR/empty-match.rs:56:20
    |
 LL |     match_no_arms!(NonEmptyEnum2::Foo(true));
-   |                    ^^^^^^^^^^^^^^^^^^^^^^^^ patterns `NonEmptyEnum2::Foo(_)` and `NonEmptyEnum2::Bar` not covered
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `NonEmptyEnum2` defined here
   --> $DIR/empty-match.rs:34:10
@@ -128,7 +128,7 @@ error[E0004]: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`,
   --> $DIR/empty-match.rs:57:20
    |
 LL |     match_no_arms!(NonEmptyEnum5::V1);
-   |                    ^^^^^^^^^^^^^^^^^ patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+   |                    ^^^^^^^^^^^^^^^^^
    |
 note: `NonEmptyEnum5` defined here
   --> $DIR/empty-match.rs:38:10
@@ -170,7 +170,7 @@ error[E0004]: non-exhaustive patterns: `0_u8..=u8::MAX` not covered
   --> $DIR/empty-match.rs:61:24
    |
 LL |     match_guarded_arm!(0u8);
-   |                        ^^^ pattern `0_u8..=u8::MAX` not covered
+   |                        ^^^
    |
    = note: the matched value is of type `u8`
    = note: match arms with guards don't count towards exhaustivity
@@ -184,7 +184,7 @@ error[E0004]: non-exhaustive patterns: `i8::MIN..=i8::MAX` not covered
   --> $DIR/empty-match.rs:62:24
    |
 LL |     match_guarded_arm!(0i8);
-   |                        ^^^ pattern `i8::MIN..=i8::MAX` not covered
+   |                        ^^^
    |
    = note: the matched value is of type `i8`
    = note: match arms with guards don't count towards exhaustivity
@@ -198,7 +198,7 @@ error[E0004]: non-exhaustive patterns: `0_usize..` not covered
   --> $DIR/empty-match.rs:63:24
    |
 LL |     match_guarded_arm!(0usize);
-   |                        ^^^^^^ pattern `0_usize..` not covered
+   |                        ^^^^^^
    |
    = note: the matched value is of type `usize`
    = note: match arms with guards don't count towards exhaustivity
@@ -212,7 +212,7 @@ error[E0004]: non-exhaustive patterns: `_` not covered
   --> $DIR/empty-match.rs:64:24
    |
 LL |     match_guarded_arm!(0isize);
-   |                        ^^^^^^ pattern `_` not covered
+   |                        ^^^^^^
    |
    = note: the matched value is of type `isize`
    = note: match arms with guards don't count towards exhaustivity
@@ -226,7 +226,7 @@ error[E0004]: non-exhaustive patterns: `NonEmptyStruct1` not covered
   --> $DIR/empty-match.rs:65:24
    |
 LL |     match_guarded_arm!(NonEmptyStruct1);
-   |                        ^^^^^^^^^^^^^^^ pattern `NonEmptyStruct1` not covered
+   |                        ^^^^^^^^^^^^^^^
    |
 note: `NonEmptyStruct1` defined here
   --> $DIR/empty-match.rs:22:12
@@ -245,7 +245,7 @@ error[E0004]: non-exhaustive patterns: `NonEmptyStruct2(_)` not covered
   --> $DIR/empty-match.rs:66:24
    |
 LL |     match_guarded_arm!(NonEmptyStruct2(true));
-   |                        ^^^^^^^^^^^^^^^^^^^^^ pattern `NonEmptyStruct2(_)` not covered
+   |                        ^^^^^^^^^^^^^^^^^^^^^
    |
 note: `NonEmptyStruct2` defined here
   --> $DIR/empty-match.rs:23:12
@@ -264,7 +264,7 @@ error[E0004]: non-exhaustive patterns: `NonEmptyUnion1 { .. }` not covered
   --> $DIR/empty-match.rs:67:24
    |
 LL |     match_guarded_arm!((NonEmptyUnion1 { foo: () }));
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ pattern `NonEmptyUnion1 { .. }` not covered
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `NonEmptyUnion1` defined here
   --> $DIR/empty-match.rs:24:11
@@ -283,7 +283,7 @@ error[E0004]: non-exhaustive patterns: `NonEmptyUnion2 { .. }` not covered
   --> $DIR/empty-match.rs:68:24
    |
 LL |     match_guarded_arm!((NonEmptyUnion2 { foo: () }));
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ pattern `NonEmptyUnion2 { .. }` not covered
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `NonEmptyUnion2` defined here
   --> $DIR/empty-match.rs:27:11
@@ -303,7 +303,7 @@ error[E0004]: non-exhaustive patterns: `NonEmptyEnum1::Foo(_)` not covered
   --> $DIR/empty-match.rs:69:24
    |
 LL |     match_guarded_arm!(NonEmptyEnum1::Foo(true));
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^ pattern `NonEmptyEnum1::Foo(_)` not covered
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `NonEmptyEnum1` defined here
   --> $DIR/empty-match.rs:31:10
@@ -324,7 +324,7 @@ error[E0004]: non-exhaustive patterns: `NonEmptyEnum2::Foo(_)` and `NonEmptyEnum
   --> $DIR/empty-match.rs:70:24
    |
 LL |     match_guarded_arm!(NonEmptyEnum2::Foo(true));
-   |                        ^^^^^^^^^^^^^^^^^^^^^^^^ patterns `NonEmptyEnum2::Foo(_)` and `NonEmptyEnum2::Bar` not covered
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: `NonEmptyEnum2` defined here
   --> $DIR/empty-match.rs:34:10
@@ -346,8 +346,8 @@ LL +                 NonEmptyEnum2::Foo(_) | NonEmptyEnum2::Bar => todo!()
 error[E0004]: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
   --> $DIR/empty-match.rs:71:24
    |
-LL | ...ded_arm!(NonEmptyEnum5::V1);
-   |             ^^^^^^^^^^^^^^^^^ patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+LL |     match_guarded_arm!(NonEmptyEnum5::V1);
+   |                        ^^^^^^^^^^^^^^^^^
    |
 note: `NonEmptyEnum5` defined here
   --> $DIR/empty-match.rs:38:10
@@ -376,7 +376,7 @@ error[E0004]: non-exhaustive patterns: `[]` not covered
   --> $DIR/empty-match.rs:72:24
    |
 LL |     match_guarded_arm!(array0_of_empty);
-   |                        ^^^^^^^^^^^^^^^ pattern `[]` not covered
+   |                        ^^^^^^^^^^^^^^^
    |
    = note: the matched value is of type `[!; 0]`
    = note: match arms with guards don't count towards exhaustivity
@@ -390,7 +390,7 @@ error[E0004]: non-exhaustive patterns: `[]` not covered
   --> $DIR/empty-match.rs:73:24
    |
 LL |     match_guarded_arm!(arrayN_of_empty);
-   |                        ^^^^^^^^^^^^^^^ pattern `[]` not covered
+   |                        ^^^^^^^^^^^^^^^
    |
    = note: the matched value is of type `[!; N]`
    = note: match arms with guards don't count towards exhaustivity

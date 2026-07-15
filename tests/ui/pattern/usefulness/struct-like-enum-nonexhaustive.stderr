@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `A::B { x: Some(_) }` not covered
   --> $DIR/struct-like-enum-nonexhaustive.rs:8:11
    |
 LL |     match x {
-   |           ^ pattern `A::B { x: Some(_) }` not covered
+   |           ^
    |
 note: `A` defined here
   --> $DIR/struct-like-enum-nonexhaustive.rs:1:6

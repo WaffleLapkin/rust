@@ -2,7 +2,7 @@ error[E0004]: non-exhaustive patterns: `P::C(PC::QA)` not covered
   --> $DIR/issue-40221.rs:11:11
    |
 LL |     match proto {
-   |           ^^^^^ pattern `P::C(PC::QA)` not covered
+   |           ^^^^^
    |
 note: `P` defined here
   --> $DIR/issue-40221.rs:1:6
