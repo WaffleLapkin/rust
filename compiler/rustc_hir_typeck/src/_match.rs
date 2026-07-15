@@ -1,3 +1,5 @@
+mod meow;
+
 use rustc_errors::codes::*;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::{CtorOf, DefKind, Res};
@@ -5,6 +7,7 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{self as hir, ExprKind, HirId, PatKind};
 use rustc_hir_pretty::ty_to_string;
 use rustc_middle::ty::{self, Ty};
+use rustc_pattern_analysis::rustc::RustcPatCtxt;
 use rustc_span::{Span, sym};
 use rustc_trait_selection::traits::{
     MatchExpressionArmCause, ObligationCause, ObligationCauseCode,
@@ -32,6 +35,46 @@ impl<'a, 'tcx> FnCtxt<'a, 'tcx> {
 
         // If there are no arms, that is a diverging match; a special case.
         if arms.is_empty() {
+            if scrutinee_ty.is_inhabited_from(
+                tcx,
+                self.body_def_id.to_def_id(),
+                self.typing_env(self.param_env),
+            ) {
+                match scrutinee_ty.kind() {
+                    ty::Adt(def, _) if def.is_enum() => (),
+                    _ => {
+                        tcx.dcx().emit_err(meow::NonExhaustivePatternsTypeNotEmpty {
+                            scrut_span: scrut.span,
+                            braces_span: match match_src {
+                                rustc_hir::MatchSource::Normal => {
+                                    Some(scrut.span.between(expr.span.shrink_to_hi()))
+                                }
+                                rustc_hir::MatchSource::Postfix => None, /* TODO */
+                                rustc_hir::MatchSource::ForLoopDesugar
+                                | rustc_hir::MatchSource::TryDesugar(_)
+                                | rustc_hir::MatchSource::AwaitDesugar
+                                | rustc_hir::MatchSource::FormatArgs => None,
+                            },
+                            ty: scrutinee_ty,
+                            tcx,
+                            module: self.body_def_id.into(),
+                            typing_env: self.typing_env(self.param_env),
+                        });
+                    }
+                };
+
+                let guard = self.dcx().span_err(
+                    scrut.span,
+                    format!("non-exhaustive patterns: type `{scrutinee_ty}` is non-empty"),
+                );
+                // rustc_patteкт
+                // rustc_pattern_analysis::
+                //                 RustcPatCtxt::
+                // if let Ok(report)= rustc_pattern_analysis::rustc::analyze_match() {
+
+                // }
+                return Ty::new_error(tcx, guard);
+            }
             self.diverges.set(self.diverges.get() | Diverges::always(expr.span));
             return tcx.types.never;
         }

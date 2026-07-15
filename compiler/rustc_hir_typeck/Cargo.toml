@@ -21,6 +21,8 @@ rustc_middle = { path = "../rustc_middle" }
 rustc_session = { path = "../rustc_session" }
 rustc_span = { path = "../rustc_span" }
 rustc_target = { path = "../rustc_target" }
+rustc_mir_build = { path = "../rustc_mir_build" }
+rustc_pattern_analysis = { path = "../rustc_pattern_analysis" }
 rustc_trait_selection = { path = "../rustc_trait_selection" }
 smallvec = { version = "1.8.1", features = ["union", "may_dangle"] }
 tracing = "0.1"
